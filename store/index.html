@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オーラス条件トレーナー｜サポート</title>
+<meta name="description" content="麻雀のオーラス着順条件をクイズで反復練習するiOSアプリ「オーラス条件トレーナー」のサポートページ。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --felt:#0d5639; --felt-deep:#072a1e; --gold:#cba957; --red:#d23333;
+    --ink:#1a1a1a; --muted:#5b6660; --bg:#f4f6f4; --card:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);line-height:1.8;-webkit-font-smoothing:antialiased}
+  .serif{font-family:"Noto Serif JP",serif}
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px}
+
+  header{
+    background:linear-gradient(140deg,var(--felt),var(--felt-deep));
+    color:#fff;padding:clamp(48px,9vw,88px) 0;position:relative;overflow:hidden;
+  }
+  header::after{content:"";position:absolute;right:-40px;top:-40px;width:240px;height:240px;
+    border:2px solid rgba(203,169,87,.35);border-radius:50%}
+  .eyebrow{letter-spacing:.18em;font-size:.78rem;opacity:.8;font-weight:700}
+  header h1{font-size:clamp(1.9rem,6vw,2.8rem);font-weight:700;margin:.4em 0 .2em;line-height:1.3}
+  header p{opacity:.92;font-size:clamp(.95rem,2.6vw,1.05rem)}
+
+  main{padding:clamp(40px,8vw,72px) 0}
+  section{margin-bottom:clamp(40px,7vw,64px)}
+  h2{font-size:clamp(1.25rem,4vw,1.6rem);font-weight:700;margin-bottom:.8em;
+    padding-left:14px;border-left:5px solid var(--gold)}
+  h3{font-size:1.05rem;font-weight:700;margin:1.4em 0 .4em;color:var(--felt)}
+
+  .faq{background:var(--card);border-radius:16px;padding:clamp(20px,4vw,28px);
+    box-shadow:0 6px 24px rgba(7,42,30,.06)}
+  .faq details{border-bottom:1px solid #eee;padding:6px 0}
+  .faq details:last-child{border-bottom:none}
+  .faq summary{cursor:pointer;font-weight:700;padding:12px 0;list-style:none;
+    display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:"＋";color:var(--gold);font-weight:700;font-size:1.2rem;transition:transform .2s}
+  .faq details[open] summary::after{content:"−"}
+  .faq p{color:var(--muted);padding:0 0 12px}
+
+  .contact{background:linear-gradient(140deg,var(--felt),var(--felt-deep));color:#fff;
+    border-radius:18px;padding:clamp(28px,5vw,40px);text-align:center}
+  .contact a{display:inline-block;margin-top:14px;background:var(--gold);color:#2a2008;
+    text-decoration:none;font-weight:700;padding:14px 30px;border-radius:999px}
+
+  footer{text-align:center;color:var(--muted);font-size:.85rem;padding:40px 0 56px}
+  footer a{color:var(--felt);text-decoration:none}
+
+  ul.clean{list-style:none;display:grid;gap:8px}
+  ul.clean li{padding-left:22px;position:relative;color:var(--muted)}
+  ul.clean li::before{content:"";position:absolute;left:4px;top:.7em;width:7px;height:7px;
+    background:var(--felt);border-radius:50%}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="eyebrow">MAHJONG TRAINING</div>
+    <h1 class="serif">オーラス条件トレーナー</h1>
+    <p>「何点必要？」を一瞬でわかる麻雀力へ。</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section>
+    <h2 class="serif">このアプリについて</h2>
+    <p>麻雀のオーラスや終盤で「あと何点アガれば順位が上がるか」を、クイズ形式で反復練習するiOSアプリです。答えを表示するだけの計算機ではなく、実戦で素早く着順条件を判断できる力を鍛えることを目的としています。</p>
+    <h3>3つの練習モード</h3>
+    <ul class="clean">
+      <li>着順アップ：1つ上の順位に上がる最低ロン点を当てる</li>
+      <li>ラス回避：4位から3位へ。ラスを回避する条件を当てる</li>
+      <li>トップ条件：2位・3位からトップをまくる条件を当てる</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2 class="serif">よくある質問</h2>
+    <div class="faq">
+      <details open>
+        <summary>料金はかかりますか？</summary>
+        <p>無料です。課金・広告はありません。</p>
+      </details>
+      <details>
+        <summary>インターネット接続やログインは必要ですか？</summary>
+        <p>不要です。通信もアカウントも使わず、完全オフラインで動作します。</p>
+      </details>
+      <details>
+        <summary>成績はどこに保存されますか？</summary>
+        <p>お使いの端末内にのみ保存されます。外部に送信することはありません。アプリを削除すると成績も消えます。</p>
+      </details>
+      <details>
+        <summary>点数の符・翻の細かい計算もできますか？</summary>
+        <p>本アプリは「着順条件の判断」に特化しています。細かい符計算ではなく、実戦でよく使う点数候補から最低条件を選ぶ形式です。</p>
+      </details>
+      <details>
+        <summary>ウマ・オカや本場・供託は考慮されますか？</summary>
+        <p>現在のバージョンでは考慮していません。25,000点持ち・本場/供託なしのオーラスを想定しています。今後のアップデートで対応モードの追加を検討しています。</p>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <div class="contact">
+      <h2 class="serif" style="border:none;padding:0">お問い合わせ</h2>
+      <p style="opacity:.9">ご質問・ご要望・不具合のご報告はこちらまで。</p>
+      <a href="mailto:beqd1106@gmail.com?subject=オーラス条件トレーナーについて">メールで問い合わせる</a>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p><a href="./privacy.html">プライバシーポリシー</a></p>
+  <p style="margin-top:8px">© 2026 オーラス条件トレーナー</p>
+</footer>
+</body>
+</html>

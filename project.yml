@@ -1,0 +1,48 @@
+# XcodeGen 設定ファイル
+# クラウド側(Codemagic)の Mac で `xcodegen generate` を実行すると
+# このファイルから OorasuConditionTrainer.xcodeproj が自動生成されます。
+# → Windows 上で .xcodeproj を手作業で作る必要がありません。
+
+name: OorasuConditionTrainer
+
+options:
+  bundleIdPrefix: com.beqd1106
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0.0"        # App Store に表示されるバージョン
+    CURRENT_PROJECT_VERSION: "1"      # ビルド番号(CIで自動上書き)
+    VERSIONING_SYSTEM: apple-generic
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"       # 1 = iPhone のみ
+
+targets:
+  OorasuConditionTrainer:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - App
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.beqd1106.oorasutrainer  # ← App Store Connect で登録する Bundle ID と一致させる
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_PREVIEWS: YES
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: オーラス条件トレーナー
+        CFBundleName: OorasuTrainer
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiredDeviceCapabilities:
+          - arm64
+        ITSAppUsesNonExemptEncryption: false   # 暗号化なし → 輸出コンプライアンスを自動でクリア

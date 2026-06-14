@@ -1,0 +1,63 @@
+# Codemagic CI/CD 設定
+# GitHub に push すると、このワークフローがクラウドの Mac 上で実行されます。
+#   1. XcodeGen で .xcodeproj を生成
+#   2. ビルド & 署名(App Store Connect API キーで自動)
+#   3. TestFlight へアップロード
+#
+# 事前にやること(すべてブラウザ):
+#   - Codemagic にこの GitHub リポジトリを接続
+#   - App Store Connect で「Integrations 用 API キー(App Manager 権限)」を発行
+#   - Codemagic の Teams > Integrations > App Store Connect に API キーを登録（名前: AppStoreConnect）
+#   - 下の bundle_identifier を、App Store Connect で作ったアプリの Bundle ID に合わせる
+
+workflows:
+  ios-testflight:
+    name: iOS build & TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: AppStoreConnect   # ← Codemagic 上で登録した API キーの名前
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.beqd1106.oorasutrainer   # ← Bundle ID を合わせる
+      vars:
+        XCODE_SCHEME: "OorasuConditionTrainer"
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+      - name: Set up code signing
+        script: |
+          xcode-project use-profiles
+      - name: Set build number
+        script: |
+          # Codemagic のビルド連番を CFBundleVersion に反映（TestFlight はビルド番号の重複を許さない）
+          cd "$CM_BUILD_DIR"
+          agvtool new-version -all "$(($BUILD_NUMBER + 1))"
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa \
+            --project "OorasuConditionTrainer.xcodeproj" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # TestFlight の内部テスターに自動配信したい場合は下を有効化:
+        # beta_groups:
+        #   - "Internal Testers"

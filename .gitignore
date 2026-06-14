@@ -1,0 +1,13 @@
+# XcodeGen が生成するファイル（リポジトリには含めない）
+*.xcodeproj/
+*.xcworkspace/
+App/Info.plist
+
+# macOS / Xcode
+.DS_Store
+build/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+xcuserdata/
