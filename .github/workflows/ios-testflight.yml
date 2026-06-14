@@ -10,7 +10,8 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    # Xcode 26 / iOS 26 SDK が必要（App Store Connect の必須要件）
+    runs-on: macos-26
     env:
       SCHEME: OorasuConditionTrainer
       PROJECT: OorasuConditionTrainer.xcodeproj
@@ -21,6 +22,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Select latest Xcode (26+)
+        run: |
+          ls -d /Applications/Xcode*.app || true
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          if [ -n "$XC" ]; then sudo xcode-select -s "$XC"; fi
+          xcodebuild -version
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -44,6 +52,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -archivePath "$RUNNER_TEMP/app.xcarchive" \
             CODE_SIGNING_ALLOWED=NO \
+            TARGETED_DEVICE_FAMILY=1 \
             CURRENT_PROJECT_VERSION=${{ github.run_number }} \
             archive
 
