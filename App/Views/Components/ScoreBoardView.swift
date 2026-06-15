@@ -12,9 +12,9 @@ struct ScoreBoardView: View {
         let diff = target.score - user.score
         let name: String
         switch question.mode {
-        case .top:       name = "トップ"
-        case .avoidLast: name = "3位"
-        case .rankUp:    name = "\(question.targetRank)位"
+        case .top:                  name = "トップ"
+        case .avoidLast:            name = "3位"
+        case .rankUp, .directHit:   name = "\(question.targetRank)位"
         }
         return "\(name)まで \(NumberFormatterUtility.scoreString(diff))点差"
     }
