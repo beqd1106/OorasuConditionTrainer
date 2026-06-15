@@ -27,20 +27,18 @@ enum HanFuReference {
         (isDealer ? dealerRon : childRon)[points]
     }
 
-    /// ツモ合計点 → 各家の支払い表記（例：子ツモ8000 → "2000 / 4000"、親ツモ12000 → "各4000"）。
+    /// ツモ合計点 → 各家の支払い表記（実値テーブル参照）。
+    /// 例：子ツモ2700 → "子700 / 親1300"、親ツモ12000 → "各4000"。
     static func tsumoSplitNote(total: Int, isDealer: Bool) -> String {
         if isDealer {
-            let each = roundUp100(total / 3)
-            return "各\(NumberFormatterUtility.scoreString(each))"
+            if let e = ScoringEngine.dealerTsumoTable.first(where: { $0.total == total }) {
+                return "各\(NumberFormatterUtility.scoreString(e.each))"
+            }
         } else {
-            // 子ツモ：親=合計の1/2、子=合計の1/4
-            let child = roundUp100(total / 4)
-            let dealer = roundUp100(total / 2)
-            return "子\(NumberFormatterUtility.scoreString(child)) / 親\(NumberFormatterUtility.scoreString(dealer))"
+            if let e = ScoringEngine.childTsumoTable.first(where: { $0.total == total }) {
+                return "子\(NumberFormatterUtility.scoreString(e.child)) / 親\(NumberFormatterUtility.scoreString(e.dealer))"
+            }
         }
-    }
-
-    private static func roundUp100(_ v: Int) -> Int {
-        Int((Double(v) / 100.0).rounded(.up)) * 100
+        return ""
     }
 }
