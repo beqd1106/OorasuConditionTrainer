@@ -3,6 +3,7 @@ import SwiftUI
 /// 解説画面。正誤判定・選択肢の答え合わせ・解説文・次へボタン。
 struct ExplanationView: View {
     @ObservedObject var viewModel: QuizViewModel
+    @EnvironmentObject private var settings: SettingsStore
 
     private var question: Question { viewModel.current }
     private var isCorrect: Bool { viewModel.lastResult?.isCorrect ?? false }
@@ -20,6 +21,12 @@ struct ExplanationView: View {
         }
         .background(Theme.background.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) { nextButton }
+        .onAppear {
+            // 効果音・振動（設定でON/OFF）
+            Feedback.play(correct: isCorrect,
+                          sound: settings.soundEnabled,
+                          haptics: settings.hapticsEnabled)
+        }
     }
 
     // MARK: - 正誤バナー

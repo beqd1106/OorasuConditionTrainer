@@ -6,6 +6,7 @@ enum QuestionMode: String, Codable, CaseIterable, Identifiable {
     case rankUp     // 着順アップ：1つ上の順位へ
     case avoidLast  // ラス回避：4位 → 3位
     case top        // トップ条件：2/3位 → トップ
+    case directHit  // 直撃条件：1つ上の相手から直接ロン
 
     var id: String { rawValue }
 
@@ -15,6 +16,7 @@ enum QuestionMode: String, Codable, CaseIterable, Identifiable {
         case .rankUp:    return "着順アップ"
         case .avoidLast: return "ラス回避"
         case .top:       return "トップ条件"
+        case .directHit: return "直撃条件"
         }
     }
 
@@ -24,6 +26,7 @@ enum QuestionMode: String, Codable, CaseIterable, Identifiable {
         case .rankUp:    return "1つ上の順位に上がる最低ロン点を当てる"
         case .avoidLast: return "4位から3位へ。ラスを回避する条件を当てる"
         case .top:       return "2位・3位からトップをまくる条件を当てる"
+        case .directHit: return "1つ上の相手から直撃する最低ロン点を当てる"
         }
     }
 
@@ -33,6 +36,7 @@ enum QuestionMode: String, Codable, CaseIterable, Identifiable {
         case .rankUp:    return "arrow.up.circle.fill"
         case .avoidLast: return "shield.lefthalf.filled"
         case .top:       return "crown.fill"
+        case .directHit: return "bolt.circle.fill"
         }
     }
 }

@@ -3,11 +3,13 @@ import SwiftUI
 @main
 struct OorasuConditionTrainerApp: App {
     @StateObject private var statsViewModel = StatsViewModel()
+    @StateObject private var settings = SettingsStore()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(statsViewModel)
+                .environmentObject(settings)
         }
     }
 }
@@ -15,7 +17,10 @@ struct OorasuConditionTrainerApp: App {
 /// ナビゲーションの遷移先。
 enum Route: Hashable {
     case modeSelect
-    case quiz(QuestionMode)
+    case quiz(QuestionMode, Difficulty)
+    case review
+    case calculator
+    case settings
     case howToPlay
 }
 
@@ -28,8 +33,14 @@ struct RootView: View {
                     switch route {
                     case .modeSelect:
                         ModeSelectView()
-                    case .quiz(let mode):
-                        QuizContainerView(mode: mode)
+                    case .quiz(let mode, let difficulty):
+                        QuizContainerView(mode: mode, difficulty: difficulty)
+                    case .review:
+                        QuizContainerView(reviewQuestions: WeakQuestionStore.shared.load())
+                    case .calculator:
+                        CalculatorView()
+                    case .settings:
+                        SettingsView()
                     case .howToPlay:
                         HowToPlayView()
                     }
@@ -45,8 +56,12 @@ struct QuizContainerView: View {
     @EnvironmentObject private var statsViewModel: StatsViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(mode: QuestionMode) {
-        _viewModel = StateObject(wrappedValue: QuizViewModel(mode: mode))
+    init(mode: QuestionMode, difficulty: Difficulty) {
+        _viewModel = StateObject(wrappedValue: QuizViewModel(mode: mode, difficulty: difficulty))
+    }
+
+    init(reviewQuestions: [Question]) {
+        _viewModel = StateObject(wrappedValue: QuizViewModel(reviewQuestions: reviewQuestions))
     }
 
     var body: some View {
@@ -60,7 +75,7 @@ struct QuizContainerView: View {
                 ResultView(viewModel: viewModel, onExit: { dismiss() })
             }
         }
-        .navigationTitle(viewModel.mode.title)
+        .navigationTitle(viewModel.sessionTitle)
         .navigationBarTitleDisplayMode(.inline)
         // 全問終了時に1回だけ成績を保存
         .onChange(of: viewModel.phase) { _, newPhase in

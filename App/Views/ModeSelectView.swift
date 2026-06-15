@@ -2,11 +2,13 @@ import SwiftUI
 
 /// モード選択画面（ホームからも直接モードへ飛べるが、一覧として独立して用意）。
 struct ModeSelectView: View {
+    @EnvironmentObject private var settings: SettingsStore
+
     var body: some View {
         ScrollView {
             VStack(spacing: 14) {
                 ForEach(QuestionMode.allCases) { mode in
-                    NavigationLink(value: Route.quiz(mode)) {
+                    NavigationLink(value: Route.quiz(mode, settings.defaultDifficulty)) {
                         modeCard(mode)
                     }
                     .buttonStyle(.plain)
