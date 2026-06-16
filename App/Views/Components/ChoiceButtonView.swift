@@ -12,6 +12,8 @@ enum ChoiceState {
 struct ChoiceButtonView: View {
     let points: Int
     let state: ChoiceState
+    /// 表示テキスト（nil なら「◯◯点」。ツモは "3000-6000（跳満）" などを渡す）
+    var displayText: String? = nil
     let action: () -> Void
 
     private var accent: Color {
@@ -47,9 +49,11 @@ struct ChoiceButtonView: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                Text("\(NumberFormatterUtility.scoreString(points))点")
-                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                Text(displayText ?? "\(NumberFormatterUtility.scoreString(points))点")
+                    .font(.system(size: displayText == nil ? 24 : 21, weight: .semibold, design: .rounded))
                     .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
                 Spacer()
                 if let icon {
                     Image(systemName: icon)

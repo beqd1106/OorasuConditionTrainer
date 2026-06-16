@@ -173,22 +173,27 @@ enum QuestionGenerator {
         let (userAfter, targetAfter) = ScoringEngine.outcome(hand: correct, situation: sit, targetIndex: targetIndex, method: method)
         let lead = userAfter - targetAfter
 
-        var text = "正解：\(f(correct))点\n\n"
+        // 手の表記：ツモは分配＋役名、それ以外は「◯◯点」
+        let hl: (Int) -> String = { v in
+            method == .tsumo ? HanFuReference.tsumoDisplay(total: v, isDealer: sit.userIsDealer) : "\(f(v))点"
+        }
+
+        var text = "正解：\(hl(correct))\n\n"
         text += "\(label)との差は\(f(gap))点です。\n"
         if bonus > 0 {
             text += "本場\(sit.honba)・供託\(sit.sticks)本で +\(f(bonus))点 が無料で乗ります。\n"
         }
-        text += "\(methodPhrase(method, label: label))で\(f(correct))点を和了すると、\n\n"
+        text += "\(methodPhrase(method, label: label))で\(hl(correct))を和了すると、\n\n"
         text += "あなた：\(f(userAfter))\n"
         text += "\(label)：\(f(targetAfter))\n\n"
         text += "となり、\(f(lead))点差で逆転します。\n\n"
 
         if let prev = ScoringEngine.candidateBelow(correct, in: candidates) {
             let (pu, pt) = ScoringEngine.outcome(hand: prev, situation: sit, targetIndex: targetIndex, method: method)
-            text += "\(f(prev))点では あなた\(f(pu)) ／ \(label)\(f(pt)) となり"
+            text += "\(hl(prev))では あなた\(f(pu)) ／ \(label)\(f(pt)) となり"
             text += (pu == pt) ? "、同点で逆転できません。\n" : "届きません。\n"
         }
-        text += "したがって最低条件は\(f(correct))点です。"
+        text += "したがって最低条件は\(hl(correct))です。"
         return text
     }
 

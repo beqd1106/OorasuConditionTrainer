@@ -68,10 +68,20 @@ struct QuestionView: View {
     private func choices(_ question: Question) -> some View {
         VStack(spacing: 12) {
             ForEach(question.choices, id: \.self) { points in
-                ChoiceButtonView(points: points, state: .idle) {
+                ChoiceButtonView(points: points, state: .idle,
+                                 displayText: ChoiceLabel.text(points: points, question: question)) {
                     viewModel.submit(points)
                 }
             }
         }
+    }
+}
+
+/// 選択肢/正解の表示テキスト。ツモは分配＋役名、それ以外は「◯◯点」。
+enum ChoiceLabel {
+    static func text(points: Int, question: Question) -> String? {
+        guard question.winType == .tsumo else { return nil }
+        let isDealer = question.user.wind == question.dealerWind
+        return HanFuReference.tsumoDisplay(total: points, isDealer: isDealer)
     }
 }

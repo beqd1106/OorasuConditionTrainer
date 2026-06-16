@@ -38,7 +38,7 @@ struct ExplanationView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(isCorrect ? "正解！" : "不正解")
                     .font(.title2.weight(.heavy))
-                Text("正解：\(NumberFormatterUtility.scoreString(question.correctAnswer))点")
+                Text("正解：\(ChoiceLabel.text(points: question.correctAnswer, question: question) ?? "\(NumberFormatterUtility.scoreString(question.correctAnswer))点")")
                     .font(.subheadline.weight(.semibold))
                     .opacity(0.95)
             }
@@ -56,7 +56,8 @@ struct ExplanationView: View {
     private var choicesReview: some View {
         VStack(spacing: 12) {
             ForEach(question.choices, id: \.self) { points in
-                ChoiceButtonView(points: points, state: state(for: points), action: {})
+                ChoiceButtonView(points: points, state: state(for: points),
+                                 displayText: ChoiceLabel.text(points: points, question: question), action: {})
             }
         }
     }
