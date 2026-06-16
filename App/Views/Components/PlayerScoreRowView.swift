@@ -5,6 +5,7 @@ struct PlayerScoreRowView: View {
     let rank: Int
     let player: Player
     let isTarget: Bool   // 上回りたい相手かどうか（強調用）
+    var isDealer: Bool = false  // 親（東家）
 
     private var rankColor: Color {
         switch rank {
@@ -27,6 +28,15 @@ struct PlayerScoreRowView: View {
             Text(player.wind.seatName)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
+
+            if isDealer {
+                Text("親")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 3)
+                    .background(Theme.gold, in: Capsule())
+            }
 
             if player.isUser {
                 Text("あなた")

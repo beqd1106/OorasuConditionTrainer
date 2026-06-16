@@ -28,6 +28,11 @@ struct ScoreBoardView: View {
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
                 Spacer()
+                Text(question.winType.title)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8).padding(.vertical, 3)
+                    .background(Theme.feltDeep, in: Capsule())
                 Text("あなた：\(user.wind.seatName)")
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Theme.felt)
@@ -39,7 +44,8 @@ struct ScoreBoardView: View {
                     PlayerScoreRowView(
                         rank: index + 1,
                         player: player,
-                        isTarget: player.id == target.id && !player.isUser
+                        isTarget: player.id == target.id && !player.isUser,
+                        isDealer: player.wind == question.dealerWind
                     )
                 }
             }

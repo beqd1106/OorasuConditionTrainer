@@ -159,6 +159,35 @@ enum ScoringEngine {
         return candidates.first { overtakes(hand: $0, situation: sit, targetIndex: targetIndex, method: method) }
     }
 
+    /// 正解の直下候補（解説で「これでは届かない」に使う）
+    static func candidateBelow(_ value: Int, in candidates: [Int]) -> Int? {
+        candidates.last { $0 < value }
+    }
+
+    /// 候補リストから4択を作る（難易度で近さを変える）
+    static func makeChoices(correct: Int, candidates: [Int], difficulty: Difficulty) -> [Int] {
+        guard let i = candidates.firstIndex(of: correct) else { return Array(candidates.prefix(4)) }
+        let offsets: [Int]
+        switch difficulty {
+        case .easy:   offsets = [-4, -2, 2, 4]
+        case .normal: offsets = [-2, -1, 1, 2]
+        case .hard:   offsets = [-1, 1, 2, -2]
+        case .oni:    offsets = [-1, 1, -2, 2]
+        }
+        var others: [Int] = []
+        for off in offsets where others.count < 3 {
+            let j = i + off
+            if j >= 0, j < candidates.count {
+                let v = candidates[j]
+                if v != correct, !others.contains(v) { others.append(v) }
+            }
+        }
+        if others.count < 3 {
+            others += candidates.filter { $0 != correct && !others.contains($0) }
+        }
+        return (Array(others.prefix(3)) + [correct]).shuffled()
+    }
+
     /// 自分が上回る必要のある相手ごとに、必要な最低手を算出する。
     static func requirements(for s: Situation) -> [Requirement] {
         guard s.scores.indices.contains(s.userIndex) else { return [] }

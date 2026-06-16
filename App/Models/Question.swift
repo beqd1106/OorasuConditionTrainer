@@ -55,10 +55,18 @@ struct Question: Identifiable, Codable, Hashable {
     let choices: [Int]
     let correctAnswer: Int
     let explanation: String
+    let winType: WinType       // ロン / ツモ
+    let dealerWind: Wind       // 親（東家）
+    let perHonba: Int          // 1本場あたりの点
 
     /// 自分のプレイヤー
     var user: Player {
         players.first { $0.id == userPlayerId } ?? players[0]
+    }
+
+    /// 親（ディーラー）のプレイヤー
+    var dealer: Player? {
+        players.first { $0.wind == dealerWind }
     }
 
     /// 点数の高い順に並べたプレイヤー（順位表示用）
