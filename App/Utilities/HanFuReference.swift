@@ -41,4 +41,36 @@ enum HanFuReference {
         }
         return ""
     }
+
+    /// ツモの分配（コンパクト表記、カンマなし）。
+    /// 子ツモ → "3000/6000"、親ツモ → "6000オール"
+    static func tsumoSplitCompact(total: Int, isDealer: Bool) -> String {
+        if isDealer {
+            if let e = ScoringEngine.dealerTsumoTable.first(where: { $0.total == total }) {
+                return "\(e.each)オール"
+            }
+        } else if let e = ScoringEngine.childTsumoTable.first(where: { $0.total == total }) {
+            return "\(e.child)/\(e.dealer)"
+        }
+        return "\(total)"
+    }
+
+    // ツモの手の名称（満貫等 or 符翻）
+    private static let childTsumoName: [Int: String] = [
+        1100: "30符1翻", 1500: "40符1翻", 2000: "30符2翻", 2700: "40符2翻",
+        3200: "50符2翻", 4000: "30符3翻", 5200: "40符3翻", 6400: "50符3翻",
+        7900: "30符4翻", 8000: "満貫", 12000: "跳満", 16000: "倍満",
+        24000: "三倍満", 32000: "役満"
+    ]
+    private static let dealerTsumoName: [Int: String] = [
+        1500: "30符1翻", 2100: "40符1翻", 3000: "30符2翻", 3900: "40符2翻",
+        4800: "50符2翻", 6000: "30符3翻", 7800: "40符3翻", 9600: "50符3翻",
+        11700: "30符4翻", 12000: "満貫", 18000: "跳満", 24000: "倍満",
+        36000: "三倍満", 48000: "役満"
+    ]
+
+    /// ツモの手の名称（例：12000 → "跳満"）
+    static func tsumoName(total: Int, isDealer: Bool) -> String {
+        (isDealer ? dealerTsumoName : childTsumoName)[total] ?? ""
+    }
 }

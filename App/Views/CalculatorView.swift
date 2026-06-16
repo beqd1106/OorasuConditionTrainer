@@ -6,8 +6,7 @@ struct CalculatorView: View {
     private let winds = Wind.allCases
 
     @State private var scores: [Int] = [33000, 25000, 22000, 20000]
-    @State private var selectedSeat: Int = 1   // 点数編集中の席
-    @State private var userIndex: Int = 1       // 自分（南家）
+    @State private var userIndex: Int = 1       // 自分（＝編集対象の席）
     @State private var dealerIndex: Int = 0     // 親（東家）
     @State private var winType: WinType = .ron
     @State private var honba: Int = 0
@@ -65,7 +64,7 @@ struct CalculatorView: View {
         let cols = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
         return LazyVGrid(columns: cols, spacing: 8) {
             ForEach(Array(winds.enumerated()), id: \.offset) { index, wind in
-                Button { selectedSeat = index } label: {
+                Button { userIndex = index } label: {
                     seatCell(index: index, wind: wind)
                 }
                 .buttonStyle(.plain)
@@ -74,7 +73,7 @@ struct CalculatorView: View {
     }
 
     private func seatCell(index: Int, wind: Wind) -> some View {
-        let selected = index == selectedSeat
+        let selected = index == userIndex
         return VStack(spacing: 4) {
             HStack(spacing: 5) {
                 Text(wind.seatName).font(.subheadline.weight(.bold))
@@ -102,7 +101,7 @@ struct CalculatorView: View {
 
     private var placeEditor: some View {
         HStack(spacing: 8) {
-            Text("\(winds[selectedSeat].seatName)を編集")
+            Text("\(winds[userIndex].seatName)（自分）")
                 .font(.caption.weight(.bold)).foregroundStyle(Theme.felt)
                 .frame(width: 78, alignment: .leading)
             placeColumn("万", place: 10000)
@@ -116,14 +115,14 @@ struct CalculatorView: View {
     private func placeColumn(_ label: String, place: Int) -> some View {
         VStack(spacing: 2) {
             Text(label).font(.caption2).foregroundStyle(.secondary)
-            Button { bump(selectedSeat, place: place, up: true) } label: {
+            Button { bump(userIndex, place: place, up: true) } label: {
                 Image(systemName: "chevron.up.circle.fill").font(.title3)
             }
             .buttonStyle(.plain).foregroundStyle(Theme.correct)
-            Text("\(digit(scores[selectedSeat], place: place))")
+            Text("\(digit(scores[userIndex], place: place))")
                 .font(.system(size: 20, weight: .heavy, design: .rounded))
                 .monospacedDigit()
-            Button { bump(selectedSeat, place: place, up: false) } label: {
+            Button { bump(userIndex, place: place, up: false) } label: {
                 Image(systemName: "chevron.down.circle.fill").font(.title3)
             }
             .buttonStyle(.plain).foregroundStyle(Theme.accentRed)
@@ -135,9 +134,6 @@ struct CalculatorView: View {
 
     private var controls: some View {
         VStack(spacing: 8) {
-            row("自分", picker(selection: $userIndex) {
-                ForEach(Array(winds.enumerated()), id: \.offset) { i, w in Text(w.seatName).tag(i) }
-            })
             row("親", picker(selection: $dealerIndex) {
                 ForEach(Array(winds.enumerated()), id: \.offset) { i, w in Text(w.seatName).tag(i) }
             })
@@ -204,11 +200,19 @@ struct CalculatorView: View {
         VStack(alignment: .leading, spacing: 1) {
             Text(title).font(.caption2.weight(.bold)).foregroundStyle(accent)
             if let value {
-                Text("\(NumberFormatterUtility.scoreString(value))").font(.headline.weight(.bold)).monospacedDigit()
-                Text(tsumo
-                     ? HanFuReference.tsumoSplitNote(total: value, isDealer: userIsDealer)
-                     : (HanFuReference.hint(forRon: value, isDealer: userIsDealer) ?? ""))
-                    .font(.caption2).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                if tsumo {
+                    // ツモは「3000/6000」「6000オール」のような分配表記
+                    Text(HanFuReference.tsumoSplitCompact(total: value, isDealer: userIsDealer))
+                        .font(.headline.weight(.bold)).monospacedDigit()
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                    Text("（\(HanFuReference.tsumoName(total: value, isDealer: userIsDealer))）")
+                        .font(.caption2).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                } else {
+                    Text("\(NumberFormatterUtility.scoreString(value))点")
+                        .font(.headline.weight(.bold)).monospacedDigit()
+                    Text(HanFuReference.hint(forRon: value, isDealer: userIsDealer) ?? "")
+                        .font(.caption2).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                }
             } else {
                 Text("役満超").font(.subheadline.weight(.bold)).foregroundStyle(.secondary)
             }
@@ -266,10 +270,12 @@ struct CalculatorView: View {
 
     // MARK: - 桁操作
 
-    private func digit(_ score: Int, place: Int) -> Int { (score / place) % 10 }
+    // 桁表示は絶対値（符号は席セルの数値で表示）
+    private func digit(_ score: Int, place: Int) -> Int { (abs(score) / place) % 10 }
 
     private func bump(_ index: Int, place: Int, up: Bool) {
         let delta = up ? place : -place
-        scores[index] = min(99900, max(0, scores[index] + delta))
+        // マイナス（トビ）も入力可能
+        scores[index] = min(999_900, max(-99_900, scores[index] + delta))
     }
 }
