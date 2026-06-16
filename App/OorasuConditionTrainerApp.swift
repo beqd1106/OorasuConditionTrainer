@@ -24,29 +24,45 @@ enum Route: Hashable {
     case howToPlay
 }
 
-/// アプリのルート。NavigationStack を1つだけ持ち、遷移先をここで集中管理する。
+/// Route → 画面
+struct RouteDestination: View {
+    let route: Route
+    var body: some View {
+        switch route {
+        case .modeSelect:                 ModeSelectView()
+        case .quiz(let mode, let diff):   QuizContainerView(mode: mode, difficulty: diff)
+        case .review:                     QuizContainerView(reviewQuestions: WeakQuestionStore.shared.load())
+        case .calculator:                 CalculatorView()
+        case .settings:                   SettingsView()
+        case .howToPlay:                  HowToPlayView()
+        }
+    }
+}
+
+extension View {
+    /// 各 NavigationStack に Route の遷移先を登録する
+    func appRoutes() -> some View {
+        navigationDestination(for: Route.self) { RouteDestination(route: $0) }
+    }
+}
+
+/// アプリのルート。ボトムタブで5画面を切り替える。
 struct RootView: View {
     var body: some View {
-        NavigationStack {
-            HomeView()
-                .navigationDestination(for: Route.self) { route in
-                    switch route {
-                    case .modeSelect:
-                        ModeSelectView()
-                    case .quiz(let mode, let difficulty):
-                        QuizContainerView(mode: mode, difficulty: difficulty)
-                    case .review:
-                        QuizContainerView(reviewQuestions: WeakQuestionStore.shared.load())
-                    case .calculator:
-                        CalculatorView()
-                    case .settings:
-                        SettingsView()
-                    case .howToPlay:
-                        HowToPlayView()
-                    }
-                }
+        TabView {
+            NavigationStack { HomeView().appRoutes() }
+                .tabItem { Label("ホーム", systemImage: "house.fill") }
+            NavigationStack { ModeSelectView().appRoutes() }
+                .tabItem { Label("練習", systemImage: "square.grid.2x2.fill") }
+            NavigationStack { CalculatorView() }
+                .tabItem { Label("計算機", systemImage: "function") }
+            NavigationStack { StatsView() }
+                .tabItem { Label("成績", systemImage: "chart.bar.fill") }
+            NavigationStack { SettingsView() }
+                .tabItem { Label("設定", systemImage: "gearshape.fill") }
         }
         .tint(Theme.felt)
+        .preferredColorScheme(.light)
     }
 }
 
@@ -59,7 +75,6 @@ struct QuizContainerView: View {
     init(mode: QuestionMode, difficulty: Difficulty) {
         _viewModel = StateObject(wrappedValue: QuizViewModel(mode: mode, difficulty: difficulty))
     }
-
     init(reviewQuestions: [Question]) {
         _viewModel = StateObject(wrappedValue: QuizViewModel(reviewQuestions: reviewQuestions))
     }
@@ -67,17 +82,13 @@ struct QuizContainerView: View {
     var body: some View {
         Group {
             switch viewModel.phase {
-            case .question:
-                QuestionView(viewModel: viewModel)
-            case .explanation:
-                ExplanationView(viewModel: viewModel)
-            case .finished:
-                ResultView(viewModel: viewModel, onExit: { dismiss() })
+            case .question:    QuestionView(viewModel: viewModel)
+            case .explanation: ExplanationView(viewModel: viewModel)
+            case .finished:    ResultView(viewModel: viewModel, onExit: { dismiss() })
             }
         }
         .navigationTitle(viewModel.sessionTitle)
         .navigationBarTitleDisplayMode(.inline)
-        // 全問終了時に1回だけ成績を保存
         .onChange(of: viewModel.phase) { _, newPhase in
             if newPhase == .finished {
                 statsViewModel.record(viewModel.results)

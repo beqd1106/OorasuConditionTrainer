@@ -17,20 +17,18 @@ struct HomeView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
+            VStack(spacing: 22) {
                 header
                 difficultySection
                 todaySection
                 modeSection
                 reviewSection
-                toolSection
-                statsSection
                 footerLinks
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 32)
+            .padding(.bottom, 24)
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
@@ -44,7 +42,7 @@ struct HomeView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("オーラス条件トレーナー")
-                .font(.system(size: 28, weight: .heavy))
+                .font(.system(size: 27, weight: .heavy, design: .serif))
                 .foregroundStyle(.white)
             Text("「何点必要？」を一瞬でわかる麻雀力へ。")
                 .font(.subheadline.weight(.medium))
@@ -150,65 +148,13 @@ struct HomeView: View {
         }
     }
 
-    // MARK: - 実戦ツール（計算機）
-
-    private var toolSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("実戦ツール")
-            NavigationLink(value: Route.calculator) {
-                PrimaryButtonLabel(
-                    title: "条件計算機",
-                    subtitle: "各家の点数を入力 → 逆転に必要な点を即算出",
-                    systemImage: "function",
-                    background: Theme.feltDeep
-                )
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    // MARK: - 成績
-
-    private var statsSection: some View {
-        let stats = statsViewModel.stats
-        return VStack(alignment: .leading, spacing: 10) {
-            sectionTitle("あなたの成績")
-            HStack(spacing: 12) {
-                StatsCardView(
-                    value: stats.totalQuestions == 0 ? "—" : "\(stats.accuracyPercent)%",
-                    label: "通算正答率",
-                    systemImage: "checkmark.seal.fill",
-                    accent: Theme.correct
-                )
-                StatsCardView(
-                    value: stats.totalQuestions == 0 ? "—" : String(format: "%.1f秒", stats.averageResponseSeconds),
-                    label: "平均回答時間",
-                    systemImage: "timer",
-                    accent: Theme.felt
-                )
-                StatsCardView(
-                    value: "\(stats.totalQuestions)",
-                    label: "累計回答数",
-                    systemImage: "sum",
-                    accent: Theme.gold
-                )
-            }
-        }
-    }
-
-    // MARK: - フッターリンク（遊び方・設定）
+    // MARK: - フッターリンク（遊び方）
 
     private var footerLinks: some View {
-        VStack(spacing: 10) {
-            NavigationLink(value: Route.howToPlay) {
-                linkRow(title: "遊び方・条件の考え方", systemImage: "questionmark.circle.fill")
-            }
-            .buttonStyle(.plain)
-            NavigationLink(value: Route.settings) {
-                linkRow(title: "設定", systemImage: "gearshape.fill")
-            }
-            .buttonStyle(.plain)
+        NavigationLink(value: Route.howToPlay) {
+            linkRow(title: "遊び方・条件の考え方", systemImage: "questionmark.circle.fill")
         }
+        .buttonStyle(.plain)
     }
 
     private func linkRow(title: String, systemImage: String) -> some View {

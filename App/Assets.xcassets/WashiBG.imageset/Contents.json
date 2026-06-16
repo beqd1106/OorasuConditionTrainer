@@ -1,0 +1,12 @@
+{
+  "images" : [
+    {
+      "filename" : "washi.png",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
