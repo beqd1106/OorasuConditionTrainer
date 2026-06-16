@@ -8,29 +8,34 @@ enum ChoiceState {
     case dimmed  // 解説時のその他
 }
 
-/// 大きな4択ボタン。片手でも押しやすいサイズにしている。
+/// 大きな4択ボタン（白＋細枠ベース、正解=青／不正解=赤のフラット）。
 struct ChoiceButtonView: View {
     let points: Int
     let state: ChoiceState
     let action: () -> Void
 
-    private var background: Color {
+    private var accent: Color {
         switch state {
-        case .idle:    return Theme.card
-        case .correct: return Theme.correct
-        case .wrong:   return Theme.wrong
-        case .dimmed:  return Theme.card
+        case .correct: return Theme.accentBlue
+        case .wrong:   return Theme.accentRed
+        default:       return Theme.line
         }
     }
-
-    private var foreground: Color {
+    private var textColor: Color {
         switch state {
-        case .correct, .wrong: return .white
-        case .idle:            return .primary
-        case .dimmed:          return .secondary
+        case .correct: return Theme.accentBlue
+        case .wrong:   return Theme.accentRed
+        case .idle:    return Theme.ink
+        case .dimmed:  return .secondary
         }
     }
-
+    private var fill: Color {
+        switch state {
+        case .correct: return Theme.accentBlue.opacity(0.08)
+        case .wrong:   return Theme.accentRed.opacity(0.08)
+        default:       return Theme.card
+        }
+    }
     private var icon: String? {
         switch state {
         case .correct: return "checkmark.circle.fill"
@@ -43,7 +48,7 @@ struct ChoiceButtonView: View {
         Button(action: action) {
             HStack {
                 Text("\(NumberFormatterUtility.scoreString(points))点")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                 Spacer()
                 if let icon {
@@ -51,14 +56,14 @@ struct ChoiceButtonView: View {
                         .font(.title3.weight(.bold))
                 }
             }
-            .foregroundStyle(foreground)
+            .foregroundStyle(textColor)
             .padding(.vertical, 20)
             .padding(.horizontal, 22)
             .frame(maxWidth: .infinity)
-            .background(background, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(fill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .strokeBorder(state == .idle ? Theme.felt.opacity(0.25) : .clear, lineWidth: 1.5)
+                    .strokeBorder(accent, lineWidth: (state == .idle || state == .dimmed) ? 1 : 1.6)
             )
             .opacity(state == .dimmed ? 0.5 : 1)
         }

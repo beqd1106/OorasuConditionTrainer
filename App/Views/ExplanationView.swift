@@ -19,7 +19,7 @@ struct ExplanationView: View {
             .padding(.top, 12)
             .padding(.bottom, 110) // 下部ボタンと被らないよう余白
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .safeAreaInset(edge: .bottom) { nextButton }
         .onAppear {
             // 効果音・振動（設定でON/OFF）
@@ -82,7 +82,7 @@ struct ExplanationView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .cardStyle(cornerRadius: 16)
     }
 
     // MARK: - 次へ

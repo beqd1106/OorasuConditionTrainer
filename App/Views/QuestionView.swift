@@ -17,7 +17,7 @@ struct QuestionView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 28)
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .onAppear { viewModel.startQuestionTimer() }
     }
 

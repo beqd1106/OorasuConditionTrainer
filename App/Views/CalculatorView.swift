@@ -53,7 +53,7 @@ struct CalculatorView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .navigationTitle("条件計算機")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -76,24 +76,25 @@ struct CalculatorView: View {
         let selected = index == userIndex
         return VStack(spacing: 4) {
             HStack(spacing: 5) {
-                Text(wind.seatName).font(.subheadline.weight(.bold))
-                if index == dealerIndex { miniBadge("親", Theme.gold) }
-                if index == userIndex { miniBadge("自分", Theme.felt) }
+                Text(wind.seatName).font(.subheadline.weight(.bold)).foregroundStyle(Theme.ink)
+                if index == dealerIndex { miniBadge("親", Theme.accentYellow) }
+                if index == userIndex { miniBadge("自分", Theme.accentBlue) }
                 Spacer(minLength: 0)
             }
             Text(NumberFormatterUtility.scoreString(scores[index]))
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.ink)
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .monospacedDigit()
         }
         .padding(.horizontal, 12).padding(.vertical, 8)
         .background(
-            selected ? Theme.felt.opacity(0.12) : Theme.card,
+            selected ? Theme.accentBlue.opacity(0.08) : Theme.card,
             in: RoundedRectangle(cornerRadius: 12, style: .continuous)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(selected ? Theme.felt : .clear, lineWidth: 2)
+                .strokeBorder(selected ? Theme.accentBlue : Theme.line, lineWidth: selected ? 1.6 : 1)
         )
     }
 
@@ -109,7 +110,7 @@ struct CalculatorView: View {
             placeColumn("百", place: 100)
         }
         .padding(.horizontal, 12).padding(.vertical, 8)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .cardStyle(cornerRadius: 12)
     }
 
     private func placeColumn(_ label: String, place: Int) -> some View {
@@ -156,7 +157,7 @@ struct CalculatorView: View {
             ))
         }
         .padding(12)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .cardStyle(cornerRadius: 12)
     }
 
     // MARK: - 結果
@@ -176,7 +177,7 @@ struct CalculatorView: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .cardStyle(cornerRadius: 12)
     }
 
     private func resultRow(_ r: ScoringEngine.Requirement) -> some View {

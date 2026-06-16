@@ -47,13 +47,23 @@ struct ModeSelectView: View {
 
     // MARK: - モードカード（コンパクト）
 
+    private func modeAccent(_ mode: QuestionMode) -> Color {
+        switch mode {
+        case .rankUp:    return Theme.accentBlue
+        case .avoidLast: return Theme.accentRed
+        case .top:       return Theme.accentYellow
+        case .directHit: return Theme.ink
+        }
+    }
+
     private func modeCard(_ mode: QuestionMode) -> some View {
-        HStack(spacing: 14) {
+        let accent = modeAccent(mode)
+        return HStack(spacing: 14) {
             Image(systemName: mode.systemImage)
                 .font(.title2.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(accent)
                 .frame(width: 48, height: 48)
-                .background(Theme.feltGradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .background(accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(mode.title) 10問")
@@ -72,6 +82,6 @@ struct ModeSelectView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .cardStyle(cornerRadius: 16)
     }
 }

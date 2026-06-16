@@ -33,7 +33,7 @@ struct ResultView: View {
             .padding(.top, 20)
             .padding(.bottom, 32)
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .navigationBarBackButtonHidden(true)
     }
 

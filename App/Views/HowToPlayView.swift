@@ -39,23 +39,28 @@ struct HowToPlayView: View {
             }
             .padding(20)
         }
-        .background(Theme.background.ignoresSafeArea())
+        .background(PaperBackground())
         .navigationTitle("遊び方")
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Circle().fill(Theme.accentRed).frame(width: 7, height: 7)
+                Circle().fill(Theme.accentBlue).frame(width: 7, height: 7)
+                Circle().fill(Theme.accentYellow).frame(width: 7, height: 7)
+            }
             Text("条件判断を、反射で。")
-                .font(.title2.weight(.heavy))
-                .foregroundStyle(.white)
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(Theme.ink)
             Text("「何点必要？」を一瞬で言えるようになるための練習アプリです。")
                 .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.9))
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
-        .background(Theme.feltGradient, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .cardStyle(cornerRadius: 18)
     }
 
     // 条件の考え方（具体例）
@@ -84,7 +89,7 @@ struct HowToPlayView: View {
             .background(Theme.gold.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .padding(18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .cardStyle(cornerRadius: 16)
     }
 
     // 基本ルール
@@ -102,7 +107,7 @@ struct HowToPlayView: View {
             }
         }
         .padding(18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .cardStyle(cornerRadius: 16)
     }
 
     private func bullet(_ text: String) -> some View {

@@ -1,72 +1,61 @@
 import SwiftUI
 
-/// 順位表の1行（順位・席・点数・自分バッジ）。
+/// 順位表の1行（順位・席・点数・バッジ）。白地・フラット・三原色アクセント。
 struct PlayerScoreRowView: View {
     let rank: Int
     let player: Player
-    let isTarget: Bool   // 上回りたい相手かどうか（強調用）
-    var isDealer: Bool = false  // 親（東家）
+    let isTarget: Bool
+    var isDealer: Bool = false
 
     private var rankColor: Color {
         switch rank {
-        case 1:  return Theme.gold
+        case 1:  return Theme.accentBlue
         case 4:  return Theme.accentRed
-        default: return .secondary
+        default: return Color.secondary
         }
     }
 
     var body: some View {
         HStack(spacing: 12) {
-            // 順位
+            // 順位（数字＋小さな下線アクセント）
             Text("\(rank)")
-                .font(.system(size: 17, weight: .heavy, design: .rounded))
+                .font(.system(size: 16, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
-                .background(rankColor, in: Circle())
+                .frame(width: 26, height: 26)
+                .background(rankColor, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
 
-            // 席
             Text(player.wind.seatName)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(Theme.ink)
 
-            if isDealer {
-                Text("親")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 7)
-                    .padding(.vertical, 3)
-                    .background(Theme.gold, in: Capsule())
-            }
-
+            if isDealer { outlineBadge("親", Theme.accentYellow) }
             if player.isUser {
-                Text("あなた")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Theme.felt, in: Capsule())
+                outlineBadge("あなた", Theme.accentBlue)
             } else if isTarget {
-                Text("目標")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Theme.accentRed, in: Capsule())
+                outlineBadge("目標", Theme.accentRed)
             }
 
             Spacer(minLength: 0)
 
-            // 点数
             Text(NumberFormatterUtility.scoreString(player.score))
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.ink)
                 .monospacedDigit()
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 12)
         .background(
-            (player.isUser ? Theme.felt.opacity(0.10) : Color.clear),
-            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+            player.isUser ? Theme.accentBlue.opacity(0.06) : Color.clear,
+            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
         )
+    }
+
+    private func outlineBadge(_ text: String, _ color: Color) -> some View {
+        Text(text)
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(color)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 2)
+            .overlay(Capsule().strokeBorder(color, lineWidth: 1))
     }
 }

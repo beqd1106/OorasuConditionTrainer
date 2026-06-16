@@ -61,7 +61,7 @@ struct RootView: View {
             NavigationStack { SettingsView() }
                 .tabItem { Label("設定", systemImage: "gearshape.fill") }
         }
-        .tint(Theme.felt)
+        .tint(Theme.accentBlue)
         .preferredColorScheme(.light)
     }
 }

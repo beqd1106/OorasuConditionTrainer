@@ -1,48 +1,88 @@
 import SwiftUI
 
-/// アプリ全体の配色。クリーム×深緑の「和帳面」スタイル（ライトテーマ）。
+/// アプリ全体の配色。白い方眼ノート × 三原色アクセント（クリーン／フラット／ライトテーマ）。
+/// 緑・和紙・金・木目などの「雀荘っぽさ」は排除。白・黒・ライトグレー中心に、
+/// 赤・青・黄をポイント使い。
 enum Theme {
-    /// 背景（クリーム／生成り）
-    static let paper = Color(red: 0.949, green: 0.918, blue: 0.851)
-    /// カード（ほぼ白の生成り）
-    static let card = Color(red: 0.992, green: 0.976, blue: 0.937)
-    /// 一段濃いクリーム（区切り・サブ背景）
-    static let paperDeep = Color(red: 0.910, green: 0.870, blue: 0.788)
+    /// 背景・カード（白）
+    static let bg = Color.white
+    static let card = Color.white
+    /// 方眼グリッド線（うっすらライトグレー）
+    static let grid = Color(red: 0.902, green: 0.910, blue: 0.929)
+    /// カード等の細い境界線
+    static let line = Color(red: 0.886, green: 0.894, blue: 0.914)
+    /// 文字（ほぼ黒）
+    static let ink = Color(red: 0.106, green: 0.118, blue: 0.137)
 
-    /// 深緑（プライマリ）
-    static let felt = Color(red: 0.176, green: 0.357, blue: 0.255)
-    /// 濃い深緑
-    static let feltDeep = Color(red: 0.118, green: 0.267, blue: 0.188)
-    /// 真鍮・金
-    static let gold = Color(red: 0.706, green: 0.557, blue: 0.314)
-    /// 朱（アクセント）
-    static let accentRed = Color(red: 0.722, green: 0.290, blue: 0.204)
+    /// 三原色アクセント
+    static let accentRed = Color(red: 0.886, green: 0.255, blue: 0.216)
+    static let accentBlue = Color(red: 0.129, green: 0.420, blue: 0.918)
+    static let accentYellow = Color(red: 0.960, green: 0.718, blue: 0.090)
 
-    /// 正解・不正解
-    static let correct = Color(red: 0.204, green: 0.471, blue: 0.302)
+    /// 正解=青／不正解=赤（緑は使わない）
+    static let correct = accentBlue
     static let wrong = accentRed
 
-    /// 文字（墨）
-    static let ink = Color(red: 0.165, green: 0.176, blue: 0.133)
+    // MARK: - 互換トークン（既存コードから参照される名前）
+    /// 旧プライマリ（緑）→ インク（黒に近い）。テキスト・アイコン・tint に使う。
+    static let felt = ink
+    static let feltDeep = Color(red: 0.180, green: 0.196, blue: 0.227)
+    /// 旧ゴールド → 黄
+    static let gold = accentYellow
+    static let paper = bg
+    static let paperDeep = grid
+    static let background = bg
 
+    /// ほぼ使わない（残存箇所用の控えめグラデーション）
     static let feltGradient = LinearGradient(
-        colors: [felt, feltDeep], startPoint: .topLeading, endPoint: .bottomTrailing
+        colors: [Color(red: 0.145, green: 0.157, blue: 0.184), ink],
+        startPoint: .topLeading, endPoint: .bottomTrailing
     )
-
-    /// 既存コード互換：背景
-    static let background = paper
 }
 
-/// 和紙テクスチャの背景。restyle した画面で使う。
+/// 白地＋うっすら方眼グリッドの背景。
 struct PaperBackground: View {
+    var spacing: CGFloat = 26
     var body: some View {
         ZStack {
-            Theme.paper
-            Image("WashiBG")
-                .resizable()
-                .scaledToFill()
-                .opacity(0.85)
+            Theme.bg
+            Canvas { ctx, size in
+                var path = Path()
+                var x: CGFloat = 0
+                while x <= size.width {
+                    path.move(to: CGPoint(x: x, y: 0))
+                    path.addLine(to: CGPoint(x: x, y: size.height))
+                    x += spacing
+                }
+                var y: CGFloat = 0
+                while y <= size.height {
+                    path.move(to: CGPoint(x: 0, y: y))
+                    path.addLine(to: CGPoint(x: size.width, y: y))
+                    y += spacing
+                }
+                ctx.stroke(path, with: .color(Theme.grid), lineWidth: 0.5)
+            }
         }
         .ignoresSafeArea()
+    }
+}
+
+/// クリーンなカード装飾（白＋細い境界線、影なし）。
+struct CardBackground: ViewModifier {
+    var cornerRadius: CGFloat = 14
+    func body(content: Content) -> some View {
+        content
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(Theme.line, lineWidth: 1)
+            )
+    }
+}
+
+extension View {
+    /// 白カード＋細枠（影なし）
+    func cardStyle(cornerRadius: CGFloat = 14) -> some View {
+        modifier(CardBackground(cornerRadius: cornerRadius))
     }
 }

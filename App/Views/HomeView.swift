@@ -40,23 +40,23 @@ struct HomeView: View {
     // MARK: - ヘッダー
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            // 三原色のドット（控えめなアクセント）
+            HStack(spacing: 6) {
+                Circle().fill(Theme.accentRed).frame(width: 8, height: 8)
+                Circle().fill(Theme.accentBlue).frame(width: 8, height: 8)
+                Circle().fill(Theme.accentYellow).frame(width: 8, height: 8)
+            }
             Text("オーラス条件トレーナー")
-                .font(.system(size: 27, weight: .heavy, design: .serif))
-                .foregroundStyle(.white)
+                .font(.system(size: 26, weight: .semibold))
+                .foregroundStyle(Theme.ink)
             Text("「何点必要？」を一瞬でわかる麻雀力へ。")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.white.opacity(0.9))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(24)
-        .background(Theme.feltGradient, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(alignment: .topTrailing) {
-            Image(systemName: "suit.club.fill")
-                .font(.system(size: 60))
-                .foregroundStyle(.white.opacity(0.08))
-                .padding(12)
-        }
+        .padding(22)
+        .cardStyle(cornerRadius: 18)
         .padding(.top, 12)
     }
 
@@ -143,7 +143,7 @@ struct HomeView: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity)
-                .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .cardStyle(cornerRadius: 14)
             }
         }
     }
@@ -167,7 +167,7 @@ struct HomeView: View {
         }
         .foregroundStyle(.primary)
         .padding(16)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .cardStyle(cornerRadius: 14)
     }
 
     // MARK: - 共通

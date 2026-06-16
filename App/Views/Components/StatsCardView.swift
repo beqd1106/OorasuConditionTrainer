@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// ホームに並べる小さな成績カード（数字＋ラベル）。
+/// 小さな成績カード（数字＋ラベル）。白＋細枠のフラット。
 struct StatsCardView: View {
     let value: String
     let label: String
     var systemImage: String? = nil
-    var accent: Color = Theme.felt
+    var accent: Color = Theme.accentBlue
 
     var body: some View {
         VStack(spacing: 6) {
@@ -15,8 +15,8 @@ struct StatsCardView: View {
                     .foregroundStyle(accent)
             }
             Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .foregroundStyle(Theme.ink)
                 .minimumScaleFactor(0.6)
                 .lineLimit(1)
             Text(label)
@@ -25,6 +25,6 @@ struct StatsCardView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .cardStyle(cornerRadius: 12)
     }
 }

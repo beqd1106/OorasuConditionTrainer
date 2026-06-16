@@ -26,50 +26,46 @@ struct StatsView: View {
     // MARK: - 段位カード
 
     private var rankCard: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 12) {
             Text("段位")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(.white.opacity(0.85))
+                .foregroundStyle(.secondary)
             Text(standing.name)
-                .font(.system(size: 44, weight: .heavy, design: .serif))
-                .foregroundStyle(.white)
+                .font(.system(size: 44, weight: .semibold))
+                .foregroundStyle(Theme.ink)
             HStack(spacing: 6) {
-                Image(systemName: "rosette").font(.caption)
+                Circle().fill(Theme.accentBlue).frame(width: 7, height: 7)
                 Text("レーティング \(standing.rating)")
                     .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Theme.accentBlue)
+                    .monospacedDigit()
             }
-            .foregroundStyle(Theme.gold)
 
             // 次の段位への進捗
             if let nextName = standing.nextName {
                 VStack(spacing: 4) {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            Capsule().fill(.white.opacity(0.25))
-                            Capsule().fill(Theme.gold)
+                            Capsule().fill(Theme.grid)
+                            Capsule().fill(Theme.accentBlue)
                                 .frame(width: geo.size.width * standing.progress)
                         }
                     }
                     .frame(height: 8)
                     Text("次は \(nextName)（あと \(max(0, (standing.nextThreshold ?? standing.rating) - standing.rating)) pt）")
                         .font(.caption2)
-                        .foregroundStyle(.white.opacity(0.8))
+                        .foregroundStyle(.secondary)
                 }
+                .padding(.top, 2)
             } else {
                 Text("最高段位に到達！")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Theme.gold)
+                    .foregroundStyle(Theme.accentBlue)
             }
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Theme.feltGradient, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(alignment: .topTrailing) {
-            Image(systemName: "leaf.fill")
-                .font(.system(size: 54))
-                .foregroundStyle(.white.opacity(0.07))
-                .padding(14)
-        }
+        .cardStyle(cornerRadius: 18)
     }
 
     // MARK: - 通算成績
@@ -105,7 +101,7 @@ struct StatsView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .cardStyle(cornerRadius: 16)
     }
 
     private func modeBar(mode: QuestionMode, stats: UserStats?) -> some View {

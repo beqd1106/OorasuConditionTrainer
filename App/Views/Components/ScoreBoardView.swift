@@ -30,12 +30,12 @@ struct ScoreBoardView: View {
                 Spacer()
                 Text(question.winType.title)
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Theme.ink)
                     .padding(.horizontal, 8).padding(.vertical, 3)
-                    .background(Theme.feltDeep, in: Capsule())
+                    .overlay(Capsule().strokeBorder(Theme.line, lineWidth: 1))
                 Text("あなた：\(user.wind.seatName)")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Theme.felt)
+                    .foregroundStyle(Theme.accentBlue)
             }
 
             // 順位表
@@ -54,15 +54,16 @@ struct ScoreBoardView: View {
             HStack(spacing: 8) {
                 Image(systemName: "target")
                     .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Theme.accentRed)
                 Text(diffLabel)
                     .font(.subheadline.weight(.bold))
+                    .foregroundStyle(Theme.ink)
             }
-            .foregroundStyle(.white)
             .padding(.vertical, 10)
             .frame(maxWidth: .infinity)
-            .background(Theme.feltGradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .background(Theme.accentRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .padding(16)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .cardStyle(cornerRadius: 18)
     }
 }
