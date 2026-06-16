@@ -11,6 +11,7 @@ struct StatsView: View {
             VStack(spacing: 20) {
                 rankCard
                 statsRow
+                modeBreakdown
                 emptyHint
             }
             .padding(.horizontal, 20)
@@ -88,6 +89,48 @@ struct StatsView: View {
                 value: "\(s.totalQuestions)",
                 label: "累計回答数", systemImage: "sum", accent: Theme.gold
             )
+        }
+    }
+
+    // MARK: - モード別正答率
+
+    private var modeBreakdown: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("モード別正答率", systemImage: "chart.bar.fill")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(Theme.felt)
+            ForEach(QuestionMode.allCases) { mode in
+                modeBar(mode: mode, stats: statsViewModel.modeStats[mode])
+            }
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func modeBar(mode: QuestionMode, stats: UserStats?) -> some View {
+        let total = stats?.totalQuestions ?? 0
+        let percent = stats?.accuracyPercent ?? 0
+        let ratio = total == 0 ? 0 : Double(percent) / 100.0
+        return VStack(spacing: 4) {
+            HStack {
+                Label(mode.title, systemImage: mode.systemImage)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.primary)
+                Spacer()
+                Text(total == 0 ? "—" : "\(percent)%（\(total)問）")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(total == 0 ? .secondary : Theme.felt)
+                    .monospacedDigit()
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Theme.paperDeep)
+                    Capsule().fill(Theme.felt)
+                        .frame(width: geo.size.width * ratio)
+                }
+            }
+            .frame(height: 8)
         }
     }
 

@@ -89,9 +89,11 @@ struct QuizContainerView: View {
         }
         .navigationTitle(viewModel.sessionTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .tabBar)   // 出題中はタブバーを隠す（誤タップ防止・全画面）
         .onChange(of: viewModel.phase) { _, newPhase in
             if newPhase == .finished {
-                statsViewModel.record(viewModel.results)
+                // 復習はモード混在のためモード別は記録しない（mode=nil）
+                statsViewModel.record(viewModel.results, mode: viewModel.isReview ? nil : viewModel.mode)
             }
         }
     }
