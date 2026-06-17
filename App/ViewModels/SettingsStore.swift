@@ -33,6 +33,7 @@ final class SettingsStore: ObservableObject {
         self.hapticsEnabled = defaults.object(forKey: Keys.haptics) as? Bool ?? true
         let raw = defaults.string(forKey: Keys.difficulty) ?? Difficulty.normal.rawValue
         self.defaultDifficulty = Difficulty(rawValue: raw) ?? .normal
-        self.aiEnabled = defaults.object(forKey: Keys.aiEnabled) as? Bool ?? true
+        // AI解説は実験的機能のため既定OFF（正確な解説はローカルで常時表示）
+        self.aiEnabled = defaults.object(forKey: Keys.aiEnabled) as? Bool ?? false
     }
 }

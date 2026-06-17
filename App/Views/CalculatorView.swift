@@ -309,7 +309,7 @@ struct CalculatorView: View {
     private var aiSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label("AI解説", systemImage: "sparkles")
+                Label("AI解説（実験的）", systemImage: "sparkles")
                     .font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentBlue)
                 Spacer()
                 if settings.aiEnabled {
@@ -319,12 +319,14 @@ struct CalculatorView: View {
             }
 
             if !settings.aiEnabled {
-                Text("設定で「AI解説」をONにすると、条件をAIが言葉で解説します。")
+                Text("設定で「AI解説」をONにすると、上の解説をAIが自然な口調に言い換えます（実験的）。正確な数値・条件は上の結果が基準です。")
                     .font(.caption).foregroundStyle(.secondary)
             } else if let aiComment {
                 Text(aiComment)
                     .font(.callout).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
+                Text("※ AIによる言い換え（実験的）。正確な数値・条件は上の結果をご確認ください。")
+                    .font(.caption2).foregroundStyle(.secondary)
                 HStack {
                     Text(sourceLabel(aiSource))
                         .font(.caption2).foregroundStyle(.secondary)
@@ -370,18 +372,20 @@ struct CalculatorView: View {
     @MainActor
     private func fetchAI() async {
         guard settings.aiEnabled, usage.canUseToday else { return }
+        // AIには「正しいローカル解説」を渡し、言い換えだけさせる（誤答を防ぐ）
+        guard let local = topComment, !local.isEmpty else { return }
         aiLoading = true; aiNote = nil
         defer { aiLoading = false }
         do {
-            let r = try await aiService.comment(facts: buildFacts())
+            let r = try await aiService.comment(facts: local)
             aiComment = r.text
             aiSource = r.source
             usage.record()
         } catch {
-            // 取得失敗 → 無料のローカル解説にフォールバック
-            aiComment = topComment
+            // 取得失敗 → ローカル解説にフォールバック
+            aiComment = local
             aiSource = "local"
-            aiNote = "AI解説を取得できませんでした。簡易解説を表示しています。"
+            aiNote = "AI解説を取得できませんでした。解説を表示しています。"
         }
     }
 
