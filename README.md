@@ -1,4 +1,4 @@
-# 点差い
+# テンパス
 
 「何点必要？」を一瞬でわかる麻雀力へ。
 
@@ -100,7 +100,7 @@ Windows の Git でも、GitHub Desktop でも、ブラウザのアップロー�
 cd OorasuConditionTrainer
 git init
 git add .
-git commit -m "first commit: 点差い MVP"
+git commit -m "first commit: テンパス MVP"
 git branch -M main
 git remote add origin https://github.com/<あなた>/OorasuConditionTrainer.git
 git push -u origin main
@@ -108,7 +108,7 @@ git push -u origin main
 
 ### STEP 2. App Store Connect でアプリ枠を作る
 1. https://appstoreconnect.apple.com → 「マイApp」→「＋」→ 新規 App
-2. プラットフォーム: iOS / 名前: 点差い / 言語: 日本語
+2. プラットフォーム: iOS / 名前: テンパス / 言語: 日本語
 3. **バンドル ID** を新規作成（例 `com.beqd1106.oorasutrainer`）。
    - `project.yml` と `codemagic.yaml` の `bundle_identifier` を、ここで作った ID に合わせてください（初期値は `com.beqd1106.oorasutrainer`）。
 
@@ -163,7 +163,7 @@ git push -u origin main
       Windows でも Figma / Canva / フリー素材で作成可。麻雀牌や緑卓モチーフ＋アプリ名で OK。
 - [ ] **スクリーンショット**（6.7インチ＝iPhone 15 Pro Max 等のサイズが最低 1 セット必要）
       → 実機 TestFlight 版で撮影、または Figma でフレームに合成。ホーム/出題/解説/結果の 4 枚程度。
-- [ ] **アプリ名**：点差い
+- [ ] **アプリ名**：テンパス
 - [ ] **サブタイトル**（任意・30 字）：例「麻雀の着順条件を反復練習」
 - [ ] **説明文**：機能・使い方を独自表現で（特定の対局アプリ/団体名は書かない）
 - [ ] **キーワード**：麻雀, 点数計算, オーラス, 着順, 練習, 雀士 など

@@ -47,7 +47,7 @@ struct HomeView: View {
                 Circle().fill(Theme.accentBlue).frame(width: 8, height: 8)
                 Circle().fill(Theme.accentYellow).frame(width: 8, height: 8)
             }
-            Text("点差い")
+            Text("テンパス")
                 .font(.system(size: 30, weight: .bold))
                 .foregroundStyle(Theme.ink)
             Text("「何点必要？」を一瞬でわかる麻雀力へ。")

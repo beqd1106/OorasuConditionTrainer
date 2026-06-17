@@ -36,8 +36,8 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: 点差い
-        CFBundleName: 点差い
+        CFBundleDisplayName: テンパス
+        CFBundleName: テンパス
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
