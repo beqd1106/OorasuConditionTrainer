@@ -12,8 +12,10 @@ enum ChoiceState {
 struct ChoiceButtonView: View {
     let points: Int
     let state: ChoiceState
-    /// 表示テキスト（nil なら「◯◯点」。ツモは "3000-6000（跳満）" などを渡す）
+    /// メイン表示（nil なら「◯◯点」。ツモは "3000-6000" などの分配を渡す）
     var displayText: String? = nil
+    /// サブ表示（役名など。ツモの満貫以上で "跳満" 等）
+    var subText: String? = nil
     let action: () -> Void
 
     private var accent: Color {
@@ -48,21 +50,27 @@ struct ChoiceButtonView: View {
 
     var body: some View {
         Button(action: action) {
-            HStack {
+            HStack(spacing: 8) {
                 Text(displayText ?? "\(NumberFormatterUtility.scoreString(points))点")
-                    .font(.system(size: displayText == nil ? 24 : 21, weight: .semibold, design: .rounded))
+                    .font(.system(size: 25, weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-                Spacer()
+                    .minimumScaleFactor(0.85)
+                if let subText {
+                    Text(subText)
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(textColor.opacity(0.75))
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 0)
                 if let icon {
                     Image(systemName: icon)
                         .font(.title3.weight(.bold))
                 }
             }
             .foregroundStyle(textColor)
-            .padding(.vertical, 20)
-            .padding(.horizontal, 22)
+            .padding(.vertical, 18)
+            .padding(.horizontal, 20)
             .frame(maxWidth: .infinity)
             .background(fill, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             .overlay(
