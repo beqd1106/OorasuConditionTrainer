@@ -16,6 +16,14 @@ struct CalculatorView: View {
     @State private var remainingRounds: Int = 0   // 残り局数（オーラス=0）
 
     private let commentService: ConditionCommentService = LocalCommentService()
+    private let aiService = RemoteAICommentService()
+
+    @EnvironmentObject private var settings: SettingsStore
+    @EnvironmentObject private var usage: UsageLimitManager
+    @State private var aiComment: String?
+    @State private var aiSource: String?
+    @State private var aiLoading = false
+    @State private var aiNote: String?
 
     private enum PerHonbaMode: String, CaseIterable, Identifiable {
         case standard, big, custom
@@ -46,6 +54,11 @@ struct CalculatorView: View {
     private var requirements: [ScoringEngine.Requirement] { ScoringEngine.requirements(for: situation) }
     private var userIsDealer: Bool { userIndex == dealerIndex }
 
+    /// 局面の識別キー（変化したらAI解説をクリアするのに使う）
+    private var situationKey: String {
+        "\(scores)-\(userIndex)-\(dealerIndex)-\(winType.rawValue)-\(honba)-\(sticks)-\(perHonba)-\(remainingRounds)"
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
@@ -53,9 +66,14 @@ struct CalculatorView: View {
                 placeEditor
                 controls
                 resultCard
+                if !requirements.isEmpty { aiSection }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
+        }
+        .onChange(of: situationKey) { _, _ in
+            // 局面が変わったら前回のAI解説をクリア
+            aiComment = nil; aiSource = nil; aiNote = nil
         }
         .background(PaperBackground())
         .navigationTitle("条件計算機")
@@ -284,6 +302,114 @@ struct CalculatorView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(8)
         .background(accent.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    // MARK: - AI解説（オンデマンド）
+
+    private var aiSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label("AI解説", systemImage: "sparkles")
+                    .font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentBlue)
+                Spacer()
+                if settings.aiEnabled {
+                    Text("本日 残り\(usage.remainingToday)回")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+            }
+
+            if !settings.aiEnabled {
+                Text("設定で「AI解説」をONにすると、条件をAIが言葉で解説します。")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else if let aiComment {
+                Text(aiComment)
+                    .font(.callout).foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Text(sourceLabel(aiSource))
+                        .font(.caption2).foregroundStyle(.secondary)
+                    Spacer()
+                    Button { Task { await fetchAI() } } label: {
+                        Label("もう一度", systemImage: "arrow.clockwise").font(.caption)
+                    }
+                    .disabled(aiLoading || !usage.canUseToday)
+                }
+            } else {
+                Button { Task { await fetchAI() } } label: {
+                    HStack(spacing: 8) {
+                        if aiLoading { ProgressView().tint(.white) }
+                        Text(aiLoading ? "生成中…" : "AIに解説してもらう").font(.subheadline.weight(.bold))
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 10)
+                }
+                .buttonStyle(.borderedProminent).tint(Theme.accentBlue)
+                .disabled(aiLoading || !usage.canUseToday)
+                if !usage.canUseToday {
+                    Text("本日のAI解説の利用上限に達しました。計算は引き続き使えます。")
+                        .font(.caption2).foregroundStyle(Theme.accentRed)
+                }
+            }
+            if let aiNote {
+                Text(aiNote).font(.caption2).foregroundStyle(Theme.accentRed)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardStyle(cornerRadius: 12)
+    }
+
+    private func sourceLabel(_ s: String?) -> String {
+        switch s {
+        case "gemini":      return "Gemini による解説（目安）"
+        case "workers-ai":  return "AI による解説（目安）"
+        case "local":       return "簡易解説（オフライン）"
+        default:            return "AI解説（目安）"
+        }
+    }
+
+    @MainActor
+    private func fetchAI() async {
+        guard settings.aiEnabled, usage.canUseToday else { return }
+        aiLoading = true; aiNote = nil
+        defer { aiLoading = false }
+        do {
+            let r = try await aiService.comment(facts: buildFacts())
+            aiComment = r.text
+            aiSource = r.source
+            usage.record()
+        } catch {
+            // 取得失敗 → 無料のローカル解説にフォールバック
+            aiComment = topComment
+            aiSource = "local"
+            aiNote = "AI解説を取得できませんでした。簡易解説を表示しています。"
+        }
+    }
+
+    /// AIに渡す確定済みファクト（数値はアプリ側で計算済み）
+    private func buildFacts() -> String {
+        var lines: [String] = []
+        lines.append("局面: 本場\(honba) 供託\(sticks)本 残り\(remainingRounds)局 和了:\(winType.title)")
+        let seats = winds.enumerated().map { i, w in
+            "\(w.seatName)\(i == dealerIndex ? "(親)" : "")\(i == userIndex ? "[自分]" : "") \(scores[i])"
+        }.joined(separator: " / ")
+        lines.append("点数: " + seats)
+        lines.append("自分は\(userIsDealer ? "親" : "子")。")
+        lines.append("逆転条件:")
+        for r in requirements {
+            let f = feasibility(r)
+            if winType == .ron {
+                lines.append("・\(r.targetRank)位(\(r.targetScore))を抜く 差\(r.gap) / 他家ロン\(factLabel(r.ronOther, tsumo: false)) / 直撃\(factLabel(r.ronDirect, tsumo: false)) / 実現率\(f)%")
+            } else {
+                lines.append("・\(r.targetRank)位(\(r.targetScore))を抜く 差\(r.gap) / ツモ\(factLabel(r.tsumo, tsumo: true)) / 実現率\(f)%")
+            }
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    private func factLabel(_ value: Int?, tsumo: Bool) -> String {
+        guard let value else { return "役満超" }
+        if tsumo { return HanFuReference.tsumoDisplay(total: value, isDealer: userIsDealer) }
+        return "\(value)点"
     }
 
     // MARK: - 小部品

@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var settings: SettingsStore
     @EnvironmentObject private var statsViewModel: StatsViewModel
+    @EnvironmentObject private var usage: UsageLimitManager
 
     @State private var showResetStatsAlert = false
     @State private var showClearWeakAlert = false
@@ -24,6 +25,18 @@ struct SettingsView: View {
                 Toggle(isOn: $settings.hapticsEnabled) {
                     Label("振動（触覚）", systemImage: "iphone.radiowaves.left.and.right")
                 }
+            }
+
+            Section {
+                Toggle(isOn: $settings.aiEnabled) {
+                    Label("AI解説", systemImage: "sparkles")
+                }
+                LabeledContent("今日の利用", value: "\(usage.todayCount) / \(usage.dailyLimit) 回")
+                LabeledContent("今月の利用", value: "\(usage.monthCount) 回")
+            } header: {
+                Text("AI解説")
+            } footer: {
+                Text("計算機で「AIに解説してもらう」を押した時だけ呼び出します（同じ局面はキャッシュ）。1日\(usage.dailyLimit)回まで。取得できない時は無料の簡易解説に切り替わります。")
             }
 
             Section("出題") {

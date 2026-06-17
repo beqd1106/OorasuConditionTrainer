@@ -4,12 +4,14 @@ import SwiftUI
 struct OorasuConditionTrainerApp: App {
     @StateObject private var statsViewModel = StatsViewModel()
     @StateObject private var settings = SettingsStore()
+    @StateObject private var usage = UsageLimitManager()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environmentObject(statsViewModel)
                 .environmentObject(settings)
+                .environmentObject(usage)
         }
     }
 }
