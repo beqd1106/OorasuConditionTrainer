@@ -24,6 +24,7 @@ struct CalculatorView: View {
     @State private var aiSource: String?
     @State private var aiLoading = false
     @State private var aiNote: String?
+    @State private var showExplain = false
 
     private enum PerHonbaMode: String, CaseIterable, Identifiable {
         case standard, big, custom
@@ -60,25 +61,25 @@ struct CalculatorView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 10) {
-                seatGrid
-                placeEditor
-                controls
-                resultCard
-                if !requirements.isEmpty { aiSection }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+        // メインは1画面ノースクロール。長い解説とAIは別シートへ。
+        VStack(spacing: 10) {
+            seatGrid
+            placeEditor
+            controls
+            resultCard
+            Spacer(minLength: 0)
         }
+        .padding(.horizontal, 16)
+        .padding(.top, 10)
         .onChange(of: situationKey) { _, _ in
-            // 局面が変わったら前回のAI解説をクリア
             aiComment = nil; aiSource = nil; aiNote = nil
         }
         .background(PaperBackground())
         .navigationTitle("条件計算機")
         .navigationBarTitleDisplayMode(.inline)
-        .scrollDismissesKeyboard(.interactively)
+        .sheet(isPresented: $showExplain) {
+            explainSheet
+        }
     }
 
     // MARK: - 席グリッド（2×2・タップで編集対象を選択）
@@ -236,23 +237,61 @@ struct CalculatorView: View {
                 }
             } else {
                 ForEach(requirements, id: \.targetScore) { r in resultRow(r) }
-                if let topComment {
-                    HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "lightbulb.fill")
-                            .font(.caption2).foregroundStyle(Theme.accentYellow).padding(.top, 1)
-                        Text(topComment)
-                            .font(.caption).foregroundStyle(.primary)
-                            .fixedSize(horizontal: false, vertical: true)
+                if topComment != nil {
+                    Button { showExplain = true } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "lightbulb.fill").font(.caption)
+                            Text("解説・方針を見る").font(.caption.weight(.bold))
+                            Spacer()
+                            Image(systemName: "chevron.right").font(.caption2).opacity(0.5)
+                        }
+                        .foregroundStyle(Theme.accentBlue)
+                        .padding(.vertical, 8).padding(.horizontal, 10)
+                        .frame(maxWidth: .infinity)
+                        .background(Theme.accentBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     }
+                    .buttonStyle(.plain)
                     .padding(.top, 2)
-                    Text("※ 実現率は概算（和了率・打点別の出現率・残り局数による統計ベースの推定）")
-                        .font(.caption2).foregroundStyle(.secondary)
                 }
             }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
         .cardStyle(cornerRadius: 12)
+    }
+
+    // MARK: - 解説シート（メインを圧迫しないよう別画面に）
+
+    private var explainSheet: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let topComment {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("解説", systemImage: "lightbulb.fill")
+                                .font(.headline.weight(.bold)).foregroundStyle(Theme.felt)
+                            Text(topComment)
+                                .font(.callout).foregroundStyle(.primary)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text("※ 実現率は概算（和了率・打点別の出現率・残り局数による統計ベースの推定）")
+                                .font(.caption2).foregroundStyle(.secondary)
+                        }
+                        .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
+                    }
+                    aiSection
+                    Spacer(minLength: 0)
+                }
+                .padding(16)
+            }
+            .background(PaperBackground())
+            .navigationTitle("解説・方針")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("閉じる") { showExplain = false }
+                }
+            }
+        }
     }
 
     private func resultRow(_ r: ScoringEngine.Requirement) -> some View {

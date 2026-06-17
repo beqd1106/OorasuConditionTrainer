@@ -27,43 +27,40 @@ struct LocalCommentService: ConditionCommentService {
             return "\(r.targetLabel)は役満を超える打点が必要で、現実的にはほぼ不可能です。別の着順を狙う方がよいでしょう。"
         }
 
-        let level: String
-        switch r.feasibility {
-        case 65...:   level = "現実的に狙えます"
-        case 40..<65: level = "やや厳しめですが狙えます"
-        case 20..<40: level = "厳しめです"
-        default:      level = "かなり厳しい条件です"
-        }
-
-        var reasons: [String] = []
-        if r.haneOrAbove { reasons.append("跳満以上が必要") }
-        else if r.manganOrAbove { reasons.append("満貫が必要") }
-        if r.winType == .tsumo { reasons.append("ツモ条件") }
-        if r.isDirectOnly { reasons.append("直撃限定なのでただアガるだけでは届きません") }
-
-        var text = "\(r.targetLabel)は"
-        if !reasons.isEmpty { text += reasons.joined(separator: "・") + "で、" }
-        text += "\(level)（実現率の目安 \(r.feasibility)%）。"
-
-        // 出現率の文脈
+        // ① 条件の「打点難易度」（必要打点ベース。実現率%とは別物として扱う）
+        let conditionPhrase: String
         if r.haneOrAbove {
-            text += " 跳満以上は和了のうち数%しか出ず、引き勝負になります。"
+            conditionPhrase = "跳満以上が必要で、打点的にかなり重い条件です"
         } else if r.manganOrAbove {
-            text += " 満貫以上は和了の約2割で、そこまで高頻度ではありません。"
-        }
-
-        // 試行回数（局数）の文脈
-        if r.remainingRounds == 0 {
-            text += " オーラスは実質1局勝負なので、まず和了できるかが大きいです。"
+            conditionPhrase = "満貫が必要な条件です"
         } else {
-            text += " 残り\(r.remainingRounds)局ぶん試行を稼げるので、その分は上がります。"
+            conditionPhrase = "満貫未満の手でも届く、打点は軽めの条件です"
+        }
+        var text = "\(r.targetLabel)は\(conditionPhrase)。"
+
+        // ② 和了方法の制約
+        if r.winType == .tsumo { text += " ツモでの条件です。" }
+        if r.isDirectOnly { text += " 他家からのアガリでは届かず、対象者への直撃が必要です。" }
+
+        // ③ 打点の出現率（重い条件のときに補足／軽い条件なら狙い方）
+        if r.haneOrAbove {
+            text += " 跳満以上は和了のうち数%ほどで、引き勝負になります。"
+        } else if r.manganOrAbove {
+            text += " 満貫以上は和了の約2割です。"
+        } else {
+            text += " リーチ・タンヤオ・ドラ絡みで十分届きます。"
         }
 
-        if r.isDealer {
-            text += " 親番が残るなら、無理に決めにいかず連荘を狙う手も。"
+        // ④ 実現率（条件の難易度ではなく「実際に決まる確率」として正しく提示）
+        if r.remainingRounds == 0 {
+            text += " ただしオーラスは実質1局勝負で、和了できるか自体が大きく、決まる確率は約\(r.feasibility)%が目安です。"
+        } else {
+            text += " 残り\(r.remainingRounds)局ぶん試行でき、決まる確率は約\(r.feasibility)%が目安です。"
         }
-        if !r.manganOrAbove && r.feasibility >= 30 {
-            text += " 打点的にはリーチ・タンヤオ・ドラ絡みで十分届く範囲です。"
+
+        // ⑤ 親番の方針
+        if r.isDealer {
+            text += " 親番が残るなら、無理に決めず連荘を狙う手もあります。"
         }
         return text
     }
