@@ -36,8 +36,8 @@ targets:
     info:
       path: App/Info.plist
       properties:
-        CFBundleDisplayName: オーラス条件トレーナー
-        CFBundleName: OorasuTrainer
+        CFBundleDisplayName: 点差い
+        CFBundleName: 点差い
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}

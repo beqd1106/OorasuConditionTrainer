@@ -13,7 +13,6 @@ struct CalculatorView: View {
     @State private var perHonbaMode: PerHonbaMode = .standard
     @State private var customPerHonba: Int = 300
     @State private var sticks: Int = 0
-    @State private var remainingRounds: Int = 0   // 残り局数（オーラス=0）
 
     private let commentService: ConditionCommentService = LocalCommentService()
     private let aiService = RemoteAICommentService()
@@ -57,7 +56,7 @@ struct CalculatorView: View {
 
     /// 局面の識別キー（変化したらAI解説をクリアするのに使う）
     private var situationKey: String {
-        "\(scores)-\(userIndex)-\(dealerIndex)-\(winType.rawValue)-\(honba)-\(sticks)-\(perHonba)-\(remainingRounds)"
+        "\(scores)-\(userIndex)-\(dealerIndex)-\(winType.rawValue)-\(honba)-\(sticks)-\(perHonba)"
     }
 
     var body: some View {
@@ -168,7 +167,6 @@ struct CalculatorView: View {
             HStack(spacing: 8) {
                 miniStepper("本場", value: $honba, range: 0...20)
                 miniStepper("供託", value: $sticks, range: 0...10)
-                miniStepper("残り局", value: $remainingRounds, range: 0...8)
             }
             row("1本場", AnyView(
                 HStack(spacing: 8) {
@@ -200,7 +198,7 @@ struct CalculatorView: View {
         let p = primaryHand(r)
         return ProbabilityEstimator.feasibility(.init(
             requiredHand: p.hand, winType: winType, isDealer: userIsDealer,
-            isDirectOnly: p.directOnly, remainingRounds: remainingRounds))
+            isDirectOnly: p.directOnly))
     }
 
     private func feasibilityColor(_ value: Int) -> Color {
@@ -221,7 +219,8 @@ struct CalculatorView: View {
             targetLabel: "\(r.targetRank)位", feasibility: feasibility(r),
             requiredHand: p.hand, winType: winType, isDealer: userIsDealer,
             isDirectOnly: p.directOnly, manganOrAbove: mangan, haneOrAbove: hane,
-            remainingRounds: remainingRounds))
+            valueRarityPercent: ProbabilityEstimator.valueRarityPercent(
+                requiredHand: p.hand, isDealer: userIsDealer, winType: winType)))
     }
 
     // MARK: - 結果
@@ -273,7 +272,7 @@ struct CalculatorView: View {
                             Text(topComment)
                                 .font(.callout).foregroundStyle(.primary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            Text("※ 実現率は概算（和了率・打点別の出現率・残り局数による統計ベースの推定）")
+                            Text("※ 実現率は概算（天鳳鳳凰卓の和了率・打点別の出現率に基づく「この手1回」での統計推定）")
                                 .font(.caption2).foregroundStyle(.secondary)
                         }
                         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
@@ -322,12 +321,13 @@ struct CalculatorView: View {
             Text(title).font(.caption2.weight(.bold)).foregroundStyle(accent)
             if let value {
                 if tsumo {
-                    // ツモは「3000/6000」「6000オール」のような分配表記
+                    // ツモは「3000-6000」「6000オール」のような分配表記（大きく見やすく）
                     Text(HanFuReference.tsumoSplitCompact(total: value, isDealer: userIsDealer))
-                        .font(.headline.weight(.bold)).monospacedDigit()
-                        .lineLimit(1).minimumScaleFactor(0.6)
-                    Text("（\(HanFuReference.tsumoName(total: value, isDealer: userIsDealer))）")
-                        .font(.caption2).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.7)
+                        .font(.system(size: 27, weight: .heavy, design: .rounded)).monospacedDigit()
+                        .lineLimit(1).minimumScaleFactor(0.5)
+                    Text(HanFuReference.tsumoName(total: value, isDealer: userIsDealer))
+                        .font(.footnote.weight(.semibold)).foregroundStyle(.secondary)
+                        .lineLimit(1).minimumScaleFactor(0.7)
                 } else {
                     Text("\(NumberFormatterUtility.scoreString(value))点")
                         .font(.headline.weight(.bold)).monospacedDigit()
@@ -348,7 +348,7 @@ struct CalculatorView: View {
     private var aiSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Label("AI解説（実験的）", systemImage: "sparkles")
+                Label("AI方針アドバイス（実験的）", systemImage: "sparkles")
                     .font(.subheadline.weight(.bold)).foregroundStyle(Theme.accentBlue)
                 Spacer()
                 if settings.aiEnabled {
@@ -358,13 +358,13 @@ struct CalculatorView: View {
             }
 
             if !settings.aiEnabled {
-                Text("設定で「AI解説」をONにすると、上の解説をAIが自然な口調に言い換えます（実験的）。正確な数値・条件は上の結果が基準です。")
+                Text("設定で「AI解説」をONにすると、いまの局面と条件をもとに、この局の打ち方の方針をAIがアドバイスします（実験的）。正確な数値・条件は上の結果が基準です。")
                     .font(.caption).foregroundStyle(.secondary)
             } else if let aiComment {
                 Text(aiComment)
                     .font(.callout).foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
-                Text("※ AIによる言い換え（実験的）。正確な数値・条件は上の結果をご確認ください。")
+                Text("※ AIによる方針アドバイス（実験的）。正確な数値・条件は上の結果をご確認ください。")
                     .font(.caption2).foregroundStyle(.secondary)
                 HStack {
                     Text(sourceLabel(aiSource))
@@ -379,7 +379,7 @@ struct CalculatorView: View {
                 Button { Task { await fetchAI() } } label: {
                     HStack(spacing: 8) {
                         if aiLoading { ProgressView().tint(.white) }
-                        Text(aiLoading ? "生成中…" : "AIに解説してもらう").font(.subheadline.weight(.bold))
+                        Text(aiLoading ? "生成中…" : "AIに方針を相談する").font(.subheadline.weight(.bold))
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 10)
                 }
@@ -411,27 +411,32 @@ struct CalculatorView: View {
     @MainActor
     private func fetchAI() async {
         guard settings.aiEnabled, usage.canUseToday else { return }
-        // AIには「正しいローカル解説」を渡し、言い換えだけさせる（誤答を防ぐ）
+        // 局面全体の確定ファクト＋アプリの方針をまとめて渡し、打ち方の方針を具体化させる。
+        // 数値はアプリ側で確定済み。AIには解釈・方針づけ（押し引き・狙う形・警戒点）を任せる。
         guard let local = topComment, !local.isEmpty else { return }
+        let facts = buildFacts()
+            + "\n\n【アプリの方針（数値は確定済み。これを基準に外れないこと）】\n" + local
+            + "\n\n上記の局面と条件をふまえ、この局の打ち方の方針を具体的に助言してください。"
+            + "（狙う打点・役、押し引き、対象者への直撃を狙うか、警戒すべき相手など。数値は変えないこと）"
         aiLoading = true; aiNote = nil
         defer { aiLoading = false }
         do {
-            let r = try await aiService.comment(facts: local)
+            let r = try await aiService.comment(facts: facts)
             aiComment = r.text
             aiSource = r.source
             usage.record()
         } catch {
-            // 取得失敗 → ローカル解説にフォールバック
+            // 取得失敗 → ローカル方針にフォールバック
             aiComment = local
             aiSource = "local"
-            aiNote = "AI解説を取得できませんでした。解説を表示しています。"
+            aiNote = "AI方針を取得できませんでした。アプリの方針を表示しています。"
         }
     }
 
     /// AIに渡す確定済みファクト（数値はアプリ側で計算済み）
     private func buildFacts() -> String {
         var lines: [String] = []
-        lines.append("局面: 本場\(honba) 供託\(sticks)本 残り\(remainingRounds)局 和了:\(winType.title)")
+        lines.append("局面: 本場\(honba) 供託\(sticks)本 和了:\(winType.title)")
         let seats = winds.enumerated().map { i, w in
             "\(w.seatName)\(i == dealerIndex ? "(親)" : "")\(i == userIndex ? "[自分]" : "") \(scores[i])"
         }.joined(separator: " / ")

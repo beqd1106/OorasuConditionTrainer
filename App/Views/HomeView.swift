@@ -47,8 +47,8 @@ struct HomeView: View {
                 Circle().fill(Theme.accentBlue).frame(width: 8, height: 8)
                 Circle().fill(Theme.accentYellow).frame(width: 8, height: 8)
             }
-            Text("オーラス条件トレーナー")
-                .font(.system(size: 26, weight: .semibold))
+            Text("点差い")
+                .font(.system(size: 30, weight: .bold))
                 .foregroundStyle(Theme.ink)
             Text("「何点必要？」を一瞬でわかる麻雀力へ。")
                 .font(.subheadline)
