@@ -13,6 +13,9 @@ struct CalculatorView: View {
     @State private var perHonbaMode: PerHonbaMode = .standard
     @State private var customPerHonba: Int = 300
     @State private var sticks: Int = 0
+    @State private var remainingRounds: Int = 0   // 残り局数（オーラス=0）
+
+    private let commentService: ConditionCommentService = LocalCommentService()
 
     private enum PerHonbaMode: String, CaseIterable, Identifiable {
         case standard, big, custom
@@ -44,18 +47,20 @@ struct CalculatorView: View {
     private var userIsDealer: Bool { userIndex == dealerIndex }
 
     var body: some View {
-        VStack(spacing: 10) {
-            seatGrid
-            placeEditor
-            controls
-            resultCard
-            Spacer(minLength: 0)
+        ScrollView {
+            VStack(spacing: 10) {
+                seatGrid
+                placeEditor
+                controls
+                resultCard
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
         .background(PaperBackground())
         .navigationTitle("条件計算機")
         .navigationBarTitleDisplayMode(.inline)
+        .scrollDismissesKeyboard(.interactively)
     }
 
     // MARK: - 席グリッド（2×2・タップで編集対象を選択）
@@ -141,9 +146,10 @@ struct CalculatorView: View {
             row("和了", picker(selection: $winType) {
                 ForEach(WinType.allCases) { t in Text(t.title).tag(t) }
             })
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 miniStepper("本場", value: $honba, range: 0...20)
                 miniStepper("供託", value: $sticks, range: 0...10)
+                miniStepper("残り局", value: $remainingRounds, range: 0...8)
             }
             row("1本場", AnyView(
                 HStack(spacing: 8) {
@@ -160,6 +166,45 @@ struct CalculatorView: View {
         .cardStyle(cornerRadius: 12)
     }
 
+    // MARK: - 実現可能性（概算）
+
+    /// 表示中の和了種別での「最も実現しやすい手」と直撃限定フラグ
+    private func primaryHand(_ r: ScoringEngine.Requirement) -> (hand: Int?, directOnly: Bool) {
+        if winType == .ron {
+            return (r.ronOther ?? r.ronDirect, r.ronOther == nil && r.ronDirect != nil)
+        } else {
+            return (r.tsumo, false)
+        }
+    }
+
+    private func feasibility(_ r: ScoringEngine.Requirement) -> Int {
+        let p = primaryHand(r)
+        return ProbabilityEstimator.feasibility(.init(
+            requiredHand: p.hand, winType: winType, isDealer: userIsDealer,
+            isDirectOnly: p.directOnly, remainingRounds: remainingRounds))
+    }
+
+    private func feasibilityColor(_ value: Int) -> Color {
+        switch value {
+        case 55...:   return Theme.accentBlue
+        case 30..<55: return Theme.accentYellow
+        default:      return Theme.accentRed
+        }
+    }
+
+    /// 一番上の目標（最上位）への解説コメント
+    private var topComment: String? {
+        guard let r = requirements.first else { return nil }
+        let p = primaryHand(r)
+        let mangan = p.hand.map { ProbabilityEstimator.isManganOrAbove(hand: $0, isDealer: userIsDealer, winType: winType) } ?? true
+        let hane = p.hand.map { ProbabilityEstimator.isHaneOrAbove(hand: $0, isDealer: userIsDealer, winType: winType) } ?? true
+        return commentService.comment(for: .init(
+            targetLabel: "\(r.targetRank)位", feasibility: feasibility(r),
+            requiredHand: p.hand, winType: winType, isDealer: userIsDealer,
+            isDirectOnly: p.directOnly, manganOrAbove: mangan, haneOrAbove: hane,
+            remainingRounds: remainingRounds))
+    }
+
     // MARK: - 結果
 
     private var resultCard: some View {
@@ -173,6 +218,18 @@ struct CalculatorView: View {
                 }
             } else {
                 ForEach(requirements, id: \.targetScore) { r in resultRow(r) }
+                if let topComment {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.caption2).foregroundStyle(Theme.accentYellow).padding(.top, 1)
+                        Text(topComment)
+                            .font(.caption).foregroundStyle(.primary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 2)
+                    Text("※ 実現可能性は概算（必要打点・親番・残り局数による目安）")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
             }
         }
         .padding(12)
@@ -181,10 +238,16 @@ struct CalculatorView: View {
     }
 
     private func resultRow(_ r: ScoringEngine.Requirement) -> some View {
-        HStack(alignment: .top, spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
+        let fz = feasibility(r)
+        return HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text("\(r.targetRank)位を抜く").font(.caption.weight(.bold))
                 Text("差\(NumberFormatterUtility.scoreString(r.gap))").font(.caption2).foregroundStyle(.secondary)
+                Text("実現 \(fz)%")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(feasibilityColor(fz), in: Capsule())
             }
             .frame(width: 76, alignment: .leading)
             if winType == .ron {
