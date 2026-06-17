@@ -24,6 +24,7 @@ struct CalculatorView: View {
     @State private var aiLoading = false
     @State private var aiNote: String?
     @State private var showExplain = false
+    @State private var detailReq: ScoringEngine.Requirement?   // 実現率バッジのタップで内訳シート表示
 
     private enum PerHonbaMode: String, CaseIterable, Identifiable {
         case standard, big, custom
@@ -60,16 +61,20 @@ struct CalculatorView: View {
     }
 
     var body: some View {
-        // メインは1画面ノースクロール。長い解説とAIは別シートへ。
-        VStack(spacing: 10) {
-            seatGrid
-            placeEditor
-            controls
-            resultCard
-            Spacer(minLength: 0)
+        // 通常は1画面に収まる。ラス目など条件が多いときだけスクロールできるようにして、
+        // 「解説・方針を見る」ボタンが画面外に消えないようにする。
+        ScrollView {
+            VStack(spacing: 10) {
+                seatGrid
+                placeEditor
+                controls
+                resultCard
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+            .padding(.bottom, 16)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 10)
+        .scrollBounceBehavior(.basedOnSize)
         .onChange(of: situationKey) { _, _ in
             aiComment = nil; aiSource = nil; aiNote = nil
         }
@@ -78,6 +83,19 @@ struct CalculatorView: View {
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showExplain) {
             explainSheet
+        }
+        .sheet(item: $detailReq) { r in
+            FeasibilityDetailView(
+                targetRank: r.targetRank,
+                gap: r.gap,
+                feasibility: feasibility(r),
+                requiredHand: primaryHand(r).hand,
+                winType: winType,
+                isDealer: userIsDealer,
+                methodLabel: winType == .ron ? (primaryHand(r).directOnly ? "直撃" : "他家ロン") : "ツモ",
+                valueRarityPercent: ProbabilityEstimator.valueRarityPercent(
+                    requiredHand: primaryHand(r).hand, isDealer: userIsDealer, winType: winType)
+            )
         }
     }
 
@@ -299,13 +317,18 @@ struct CalculatorView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(r.targetRank)位を抜く").font(.caption.weight(.bold))
                 Text("差\(NumberFormatterUtility.scoreString(r.gap))").font(.caption2).foregroundStyle(.secondary)
-                Text("実現 \(fz)%")
-                    .font(.caption2.weight(.bold))
+                Button { detailReq = r } label: {
+                    HStack(spacing: 3) {
+                        Text("実現 \(fz)%").font(.caption2.weight(.bold))
+                        Image(systemName: "chart.bar.fill").font(.system(size: 8))
+                    }
                     .foregroundStyle(.white)
                     .padding(.horizontal, 6).padding(.vertical, 2)
                     .background(feasibilityColor(fz), in: Capsule())
+                }
+                .buttonStyle(.plain)
             }
-            .frame(width: 76, alignment: .leading)
+            .frame(width: 80, alignment: .leading)
             if winType == .ron {
                 chip("他家ロン", r.ronOther, Theme.felt, tsumo: false)
                 chip("直撃", r.ronDirect, Theme.accentRed, tsumo: false)
@@ -516,4 +539,9 @@ struct CalculatorView: View {
         // マイナス（トビ）も入力可能
         scores[index] = min(999_900, max(-99_900, scores[index] + delta))
     }
+}
+
+// .sheet(item:) で使うため。対象スコアは表示中の条件内で一意（同点は集約済み）。
+extension ScoringEngine.Requirement: Identifiable {
+    var id: Int { targetScore }
 }

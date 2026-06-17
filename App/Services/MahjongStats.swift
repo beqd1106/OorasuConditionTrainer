@@ -35,6 +35,16 @@ enum MahjongStats {
         (32000, 0.002)   // 役満
     ]
 
+    /// 和了したときの打点帯の分布 P(打点帯 = v | 和了)（昇順）。
+    /// 生存確率の隣接差から求める。実現率の内訳チャート用。
+    static func valueDistribution() -> [(points: Int, prob: Double)] {
+        survivalTable.indices.map { i in
+            let s = survivalTable[i].prob
+            let sNext = (i + 1 < survivalTable.count) ? survivalTable[i + 1].prob : 0
+            return (survivalTable[i].points, max(0, s - sNext))
+        }
+    }
+
     /// 子ロン換算の代表点における「その打点以上で和了する割合」。
     /// テーブルのキーに無い点数でもティア間を線形補間して滑らかに返す。
     static func valueSurvival(childRonEquivalent points: Int) -> Double {
