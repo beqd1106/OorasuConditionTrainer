@@ -227,7 +227,7 @@ struct CalculatorView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .padding(.top, 2)
-                    Text("※ 実現可能性は概算（必要打点・親番・残り局数による目安）")
+                    Text("※ 実現率は概算（和了率・打点別の出現率・残り局数による統計ベースの推定）")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
             }

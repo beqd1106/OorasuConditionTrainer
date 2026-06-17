@@ -43,15 +43,27 @@ struct LocalCommentService: ConditionCommentService {
 
         var text = "\(r.targetLabel)は"
         if !reasons.isEmpty { text += reasons.joined(separator: "・") + "で、" }
-        text += "\(level)。"
+        text += "\(level)（実現率の目安 \(r.feasibility)%）。"
+
+        // 出現率の文脈
+        if r.haneOrAbove {
+            text += " 跳満以上は和了のうち数%しか出ず、引き勝負になります。"
+        } else if r.manganOrAbove {
+            text += " 満貫以上は和了の約2割で、そこまで高頻度ではありません。"
+        }
+
+        // 試行回数（局数）の文脈
+        if r.remainingRounds == 0 {
+            text += " オーラスは実質1局勝負なので、まず和了できるかが大きいです。"
+        } else {
+            text += " 残り\(r.remainingRounds)局ぶん試行を稼げるので、その分は上がります。"
+        }
 
         if r.isDealer {
-            text += " 親番が残っているので、無理せず連荘を狙う選択もあります。"
-        } else if r.remainingRounds > 0 {
-            text += " まだ局が残っているので、押し引きは慎重に。"
+            text += " 親番が残るなら、無理に決めにいかず連荘を狙う手も。"
         }
-        if !r.manganOrAbove && r.feasibility >= 55 {
-            text += " リーチ・タンヤオ・ドラ絡みで十分届く範囲です。"
+        if !r.manganOrAbove && r.feasibility >= 30 {
+            text += " 打点的にはリーチ・タンヤオ・ドラ絡みで十分届く範囲です。"
         }
         return text
     }
