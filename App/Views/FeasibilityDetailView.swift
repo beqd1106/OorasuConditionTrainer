@@ -80,7 +80,9 @@ struct FeasibilityDetailView: View {
                     summaryCard
                     chartCard
                     legendCard
-                    Text("※ 出現率は天鳳鳳凰卓の統計をもとにした概算です。実際は手牌・場況により変わります。")
+                    outcomeCard
+                    statsCard
+                    Text("※ 出現率・確率は天鳳鳳凰卓の統計をもとにした概算です。実際は手牌・場況により変わります。")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 .padding(16)
@@ -179,6 +181,78 @@ struct FeasibilityDetailView: View {
         HStack(spacing: 5) {
             RoundedRectangle(cornerRadius: 3).fill(color(reach)).frame(width: 12, height: 12)
             Text(label).foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - この局の結果の見込み（自分和了／他家和了／流局）
+
+    private struct Outcome: Identifiable {
+        let id = UUID()
+        let label: String
+        let value: Double
+        let color: Color
+    }
+
+    private var outcomes: [Outcome] {
+        let s = MahjongStats.outcomeSplit(isDealer: isDealer)
+        return [
+            Outcome(label: "自分が和了", value: s.myWin,     color: Theme.accentBlue),
+            Outcome(label: "他家が和了", value: s.othersWin, color: Theme.accentRed),
+            Outcome(label: "流局",       value: s.draw,      color: Theme.accentYellow)
+        ]
+    }
+
+    private func pct(_ v: Double) -> Int { Int((v * 100).rounded()) }
+
+    private var outcomeCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("この局の結果の見込み", systemImage: "chart.pie.fill")
+                .font(.subheadline.weight(.bold)).foregroundStyle(Theme.felt)
+            HStack(spacing: 18) {
+                Chart(outcomes) { o in
+                    SectorMark(angle: .value("割合", o.value), innerRadius: .ratio(0.58), angularInset: 1.5)
+                        .foregroundStyle(o.color)
+                        .cornerRadius(3)
+                }
+                .frame(width: 140, height: 140)
+                VStack(alignment: .leading, spacing: 8) {
+                    ForEach(outcomes) { o in
+                        HStack(spacing: 6) {
+                            Circle().fill(o.color).frame(width: 10, height: 10)
+                            Text(o.label).font(.caption)
+                            Spacer(minLength: 8)
+                            Text("\(pct(o.value))%").font(.caption.weight(.bold)).monospacedDigit()
+                        }
+                    }
+                }
+            }
+            Text("多くの局は他家の和了か流局で終わります。逆転はまず自分が和了できることが前提です。")
+                .font(.caption2).foregroundStyle(.secondary)
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
+    }
+
+    // MARK: - 参考データ
+
+    private var statsCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("参考データ（天鳳鳳凰卓・概算）", systemImage: "tablecells")
+                .font(.subheadline.weight(.bold)).foregroundStyle(Theme.felt)
+            statRow("自分の和了率", "約\(pct(isDealer ? MahjongStats.winRateDealer : MahjongStats.winRate))%\(isDealer ? "（親）" : "")")
+            statRow("自分の放銃率", "約\(pct(MahjongStats.dealInRate))%")
+            statRow("和了の内訳（ツモ:ロン）", "約\(pct(MahjongStats.tsumoShare)):\(pct(MahjongStats.ronShare))")
+            statRow("流局率", "約\(pct(MahjongStats.drawRate))%")
+            Text("出典：天鳳 鳳凰卓 2023年 牌譜統計ほか")
+                .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
+        }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
+    }
+
+    private func statRow(_ label: String, _ value: String) -> some View {
+        HStack {
+            Text(label).font(.caption).foregroundStyle(.secondary)
+            Spacer(minLength: 8)
+            Text(value).font(.subheadline.weight(.bold)).monospacedDigit()
         }
     }
 }

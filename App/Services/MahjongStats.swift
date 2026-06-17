@@ -22,6 +22,20 @@ enum MahjongStats {
     static let ronShare = 0.55
     static let tsumoShare = 0.45
 
+    /// 流局率（天鳳鳳凰卓 .162 → 概算 0.16）。
+    static let drawRate = 0.16
+    /// 1局あたり自分が振り込む確率＝放銃率（天鳳鳳凰卓 .125 → 概算 0.12）。
+    static let dealInRate = 0.12
+
+    /// この局の結果の見込み（自分の和了／他家の和了／流局）の確率内訳。
+    /// 自分の和了率と流局率は統計値、他家(3人合計)は残り＝1−自分−流局 で求める。
+    static func outcomeSplit(isDealer: Bool) -> (myWin: Double, othersWin: Double, draw: Double) {
+        let myWin = isDealer ? winRateDealer : winRate
+        let draw = drawRate
+        let othersWin = max(0, 1 - myWin - draw)
+        return (myWin, othersWin, draw)
+    }
+
     /// P(和了打点 >= しきい点 | 和了)。子ロン換算の代表点をキーにした概算の生存確率。
     /// 昇順テーブル。キー間は線形補間する。
     /// 較正の目安：このカーブの期待値 ≈ 4,800 点、満貫(8000)以上 ≈ 18%（赤ありで高打点が出やすい）。
