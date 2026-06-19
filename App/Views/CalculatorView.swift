@@ -298,7 +298,7 @@ struct CalculatorView: View {
                         }
                         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
                     }
-                    aiSection
+                    if FeatureFlags.aiAdvice { aiSection }
                     Spacer(minLength: 0)
                 }
                 .padding(16)

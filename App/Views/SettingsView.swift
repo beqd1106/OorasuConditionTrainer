@@ -27,16 +27,18 @@ struct SettingsView: View {
                 }
             }
 
-            Section {
-                Toggle(isOn: $settings.aiEnabled) {
-                    Label("AI解説", systemImage: "sparkles")
+            if FeatureFlags.aiAdvice {
+                Section {
+                    Toggle(isOn: $settings.aiEnabled) {
+                        Label("AI解説", systemImage: "sparkles")
+                    }
+                    LabeledContent("今日の利用", value: "\(usage.todayCount) / \(usage.dailyLimit) 回")
+                    LabeledContent("今月の利用", value: "\(usage.monthCount) 回")
+                } header: {
+                    Text("AI解説")
+                } footer: {
+                    Text("計算機で「AIに解説してもらう」を押した時だけ呼び出します（同じ局面はキャッシュ）。1日\(usage.dailyLimit)回まで。取得できない時は無料の簡易解説に切り替わります。")
                 }
-                LabeledContent("今日の利用", value: "\(usage.todayCount) / \(usage.dailyLimit) 回")
-                LabeledContent("今月の利用", value: "\(usage.monthCount) 回")
-            } header: {
-                Text("AI解説")
-            } footer: {
-                Text("計算機で「AIに解説してもらう」を押した時だけ呼び出します（同じ局面はキャッシュ）。1日\(usage.dailyLimit)回まで。取得できない時は無料の簡易解説に切り替わります。")
             }
 
             Section("出題") {
