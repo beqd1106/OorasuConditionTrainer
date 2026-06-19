@@ -54,6 +54,8 @@ struct CalculatorView: View {
     }
     private var requirements: [ScoringEngine.Requirement] { ScoringEngine.requirements(for: situation) }
     private var userIsDealer: Bool { userIndex == dealerIndex }
+    /// 自分の現在の着順（1〜4）。局の見込みの着順補正に使う。
+    private var userRank: Int { 1 + scores.filter { $0 > scores[userIndex] }.count }
 
     /// 局面の識別キー（変化したらAI解説をクリアするのに使う）
     private var situationKey: String {
@@ -94,7 +96,8 @@ struct CalculatorView: View {
                 isDealer: userIsDealer,
                 methodLabel: winType == .ron ? (primaryHand(r).directOnly ? "直撃" : "他家ロン") : "ツモ",
                 valueRarityPercent: ProbabilityEstimator.valueRarityPercent(
-                    requiredHand: primaryHand(r).hand, isDealer: userIsDealer, winType: winType)
+                    requiredHand: primaryHand(r).hand, isDealer: userIsDealer, winType: winType),
+                userRank: userRank
             )
         }
     }

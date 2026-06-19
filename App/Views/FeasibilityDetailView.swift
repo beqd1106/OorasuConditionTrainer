@@ -12,6 +12,7 @@ struct FeasibilityDetailView: View {
     let isDealer: Bool
     let methodLabel: String     // "他家ロン" / "直撃" / "ツモ"
     let valueRarityPercent: Int?  // 必要打点以上で和了する割合(%)
+    let userRank: Int           // 自分の現在の着順(1〜4)。局の見込みの着順補正に使う
 
     @Environment(\.dismiss) private var dismiss
 
@@ -194,7 +195,7 @@ struct FeasibilityDetailView: View {
     }
 
     private var outcomes: [Outcome] {
-        let s = MahjongStats.outcomeSplit(isDealer: isDealer)
+        let s = MahjongStats.outcomeSplit(isDealer: isDealer, rank: userRank)
         return [
             Outcome(label: "自分が和了", value: s.myWin,     color: Theme.accentBlue),
             Outcome(label: "他家が和了", value: s.othersWin, color: Theme.accentRed),
@@ -204,10 +205,25 @@ struct FeasibilityDetailView: View {
 
     private func pct(_ v: Double) -> Int { Int((v * 100).rounded()) }
 
+    private var rankLabel: String {
+        switch userRank {
+        case 1:  return "トップ目"
+        case 2:  return "2番手"
+        case 3:  return "3番手"
+        default: return "ラス目"
+        }
+    }
+
     private var outcomeCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("この局の結果の見込み", systemImage: "chart.pie.fill")
-                .font(.subheadline.weight(.bold)).foregroundStyle(Theme.felt)
+            HStack(spacing: 6) {
+                Label("この局の結果の見込み", systemImage: "chart.pie.fill")
+                    .font(.subheadline.weight(.bold)).foregroundStyle(Theme.felt)
+                Text(rankLabel)
+                    .font(.caption2.weight(.bold)).foregroundStyle(.white)
+                    .padding(.horizontal, 7).padding(.vertical, 2)
+                    .background(Theme.felt, in: Capsule())
+            }
             HStack(spacing: 18) {
                 Chart(outcomes) { o in
                     SectorMark(angle: .value("割合", o.value), innerRadius: .ratio(0.58), angularInset: 1.5)
@@ -226,7 +242,7 @@ struct FeasibilityDetailView: View {
                     }
                 }
             }
-            Text("多くの局は他家の和了か流局で終わります。逆転はまず自分が和了できることが前提です。")
+            Text("多くの局は他家の和了か流局で終わります。逆転はまず自分が和了できることが前提です。\(rankLabel)の押し引き傾向（トップ目は守備的・ラス目は攻撃的）を反映した概算で、基礎値は天鳳鳳凰卓の平均です。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
@@ -236,13 +252,14 @@ struct FeasibilityDetailView: View {
 
     private var statsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("参考データ（天鳳鳳凰卓・概算）", systemImage: "tablecells")
+            Label("参考データ（\(rankLabel)・概算）", systemImage: "tablecells")
                 .font(.subheadline.weight(.bold)).foregroundStyle(Theme.felt)
-            statRow("自分の和了率", "約\(pct(isDealer ? MahjongStats.winRateDealer : MahjongStats.winRate))%\(isDealer ? "（親）" : "")")
-            statRow("自分の放銃率", "約\(pct(MahjongStats.dealInRate))%")
+            let split = MahjongStats.outcomeSplit(isDealer: isDealer, rank: userRank)
+            statRow("自分の和了率", "約\(pct(split.myWin))%\(isDealer ? "（親）" : "")")
+            statRow("自分の放銃率", "約\(pct(MahjongStats.dealInRateByRank(userRank)))%")
             statRow("和了の内訳（ツモ:ロン）", "約\(pct(MahjongStats.tsumoShare)):\(pct(MahjongStats.ronShare))")
-            statRow("流局率", "約\(pct(MahjongStats.drawRate))%")
-            Text("出典：天鳳 鳳凰卓 2023年 牌譜統計ほか")
+            statRow("流局率", "約\(pct(split.draw))%")
+            Text("基礎値の出典：天鳳 鳳凰卓 2023年 牌譜統計ほか。着順別は押し引き傾向を反映した概算。")
                 .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)

@@ -27,13 +27,38 @@ enum MahjongStats {
     /// 1局あたり自分が振り込む確率＝放銃率（天鳳鳳凰卓 .125 → 概算 0.12）。
     static let dealInRate = 0.12
 
+    /// 現在の着順による「押し引き傾向」の補正係数（概算モデル）。
+    /// 統計的事実：トップ目は守備的で和了率が下がり流局が増える／ラス目は攻撃的で
+    /// 和了率・放銃率が上がる（ラス回避麻雀の定石・各種戦術データの一般的傾向）。
+    /// 厳密な着順別の実測テーブルは公開が乏しいため、基礎平均に方向性の補正を掛ける。
+    private static func rankFactors(_ rank: Int) -> (win: Double, draw: Double) {
+        switch rank {
+        case 1:  return (0.82, 1.15)   // トップ目：守備的（和了↓・流局↑）
+        case 2:  return (0.97, 1.03)
+        case 3:  return (1.05, 0.96)
+        default: return (1.12, 0.92)   // ラス目：攻撃的（和了↑・流局↓）
+        }
+    }
+
     /// この局の結果の見込み（自分の和了／他家の和了／流局）の確率内訳。
-    /// 自分の和了率と流局率は統計値、他家(3人合計)は残り＝1−自分−流局 で求める。
-    static func outcomeSplit(isDealer: Bool) -> (myWin: Double, othersWin: Double, draw: Double) {
-        let myWin = isDealer ? winRateDealer : winRate
-        let draw = drawRate
+    /// 基礎値（和了率・流局率）は天鳳鳳凰卓の実測平均、そこに現在の着順(rank=1〜4)の
+    /// 押し引き傾向を補正して求める概算。他家(3人合計)は残り＝1−自分−流局。
+    static func outcomeSplit(isDealer: Bool, rank: Int) -> (myWin: Double, othersWin: Double, draw: Double) {
+        let f = rankFactors(rank)
+        let myWin = min(0.45, (isDealer ? winRateDealer : winRate) * f.win)
+        let draw  = min(0.30, drawRate * f.draw)
         let othersWin = max(0, 1 - myWin - draw)
         return (myWin, othersWin, draw)
+    }
+
+    /// 現在の着順に応じた自分の放銃率（概算）。トップ目は低く、ラス目は高い。
+    static func dealInRateByRank(_ rank: Int) -> Double {
+        switch rank {
+        case 1:  return dealInRate * 0.80
+        case 2:  return dealInRate * 0.97
+        case 3:  return dealInRate * 1.05
+        default: return dealInRate * 1.15
+        }
     }
 
     /// P(和了打点 >= しきい点 | 和了)。子ロン換算の代表点をキーにした概算の生存確率。
