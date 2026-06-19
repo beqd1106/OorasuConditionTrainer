@@ -13,7 +13,7 @@ options:
 
 settings:
   base:
-    MARKETING_VERSION: "1.0.0"        # App Store に表示されるバージョン
+    MARKETING_VERSION: "1.0.1"        # App Store に表示されるバージョン（1.0.0は承認済みのため繰り上げ）
     CURRENT_PROJECT_VERSION: "1"      # ビルド番号(CIで自動上書き)
     VERSIONING_SYSTEM: apple-generic
     SWIFT_VERSION: "5.0"
