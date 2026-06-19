@@ -83,7 +83,7 @@ struct FeasibilityDetailView: View {
                     legendCard
                     outcomeCard
                     statsCard
-                    Text("※ 出現率・確率は天鳳鳳凰卓の統計をもとにした概算です。実際は手牌・場況により変わります。")
+                    Text("※ 出現率・確率は一般的な対局データをもとにした概算です。実際は手牌・場況により変わります。")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 .padding(16)
@@ -242,7 +242,7 @@ struct FeasibilityDetailView: View {
                     }
                 }
             }
-            Text("多くの局は他家の和了か流局で終わります。逆転はまず自分が和了できることが前提です。\(rankLabel)の押し引き傾向（トップ目は守備的・ラス目は攻撃的）を反映した概算で、基礎値は天鳳鳳凰卓の平均です。")
+            Text("多くの局は他家の和了か流局で終わります。逆転はまず自分が和了できることが前提です。\(rankLabel)の押し引き傾向（トップ目は守備的・ラス目は攻撃的）を反映した概算で、基礎値は一般的な対局データの平均です。")
                 .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
@@ -259,7 +259,7 @@ struct FeasibilityDetailView: View {
             statRow("自分の放銃率", "約\(pct(MahjongStats.dealInRateByRank(userRank)))%")
             statRow("和了の内訳（ツモ:ロン）", "約\(pct(MahjongStats.tsumoShare)):\(pct(MahjongStats.ronShare))")
             statRow("流局率", "約\(pct(split.draw))%")
-            Text("基礎値の出典：天鳳 鳳凰卓 2023年 牌譜統計ほか。着順別は押し引き傾向を反映した概算。")
+            Text("基礎値は公開されている多数の対局データに基づく概算。着順別は押し引き傾向を反映した概算。")
                 .font(.caption2).foregroundStyle(.secondary).padding(.top, 2)
         }
         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)

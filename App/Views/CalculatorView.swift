@@ -293,7 +293,7 @@ struct CalculatorView: View {
                             Text(topComment)
                                 .font(.callout).foregroundStyle(.primary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            Text("※ 実現率は概算（天鳳鳳凰卓の和了率・打点別の出現率に基づく「この手1回」での統計推定）")
+                            Text("※ 実現率は概算（一般的な対局データの和了率・打点別の出現率に基づく「この手1回」での統計推定）")
                                 .font(.caption2).foregroundStyle(.secondary)
                         }
                         .padding(14).frame(maxWidth: .infinity, alignment: .leading).cardStyle(cornerRadius: 14)
